@@ -13,25 +13,25 @@
 <style>
 /* Layout: three working columns — chapters | manuscript | page preview — like a writer's desk with manuscript paper (原稿用紙) ruled in green. */
 :root{
-  --paper:#F3F7F4;
-  --surface:#FFFFFF;
-  --ink:#16201B;
-  --muted:#56645C;
-  --rule:#D3DFD7;
-  --accent:#0F8A63;
+  --paper:#F4F0E7;
+  --surface:#FFFDF8;
+  --ink:#263B32;
+  --muted:#667068;
+  --rule:#DEDCCE;
+  --accent:#24634F;
   --accent-2:#0B6FA8;
-  --accent-soft:#DDF3E9;
+  --accent-soft:#E5EEE5;
   --accent-ink:#FFFFFF;
-  --shu:#E04A2F;
+  --shu:#AC573B;
   --shu-soft:#FDE7E1;
-  --ai:#2F5BD3;
-  --ai-soft:#E3EAFD;
+  --ai:#45647A;
+  --ai-soft:#E6EDF0;
   --gold:#D99A12;
   --warn:#C0392B;
-  --grad:linear-gradient(135deg,#12A374 0%,#0B7FA8 100%);
-  --bg:radial-gradient(1200px 500px at 0% -10%,#D7F2E5 0%,transparent 60%),radial-gradient(900px 500px at 100% 0%,#FBE3DA 0%,transparent 55%),#F3F7F4;
-  --shadow:0 1px 2px rgba(16,40,30,.06),0 6px 18px rgba(16,60,45,.08);
-  --pvbg:linear-gradient(160deg,#E6ECFA,#F3E9E2);
+  --grad:linear-gradient(135deg,#346F59 0%,#1D4E40 100%);
+  --bg:radial-gradient(ellipse at 0% 0%,#E4EDDF 0%,transparent 55%),radial-gradient(ellipse at 100% 0%,#F2E6D5 0%,transparent 50%),#F0EDE5;
+  --shadow:0 2px 3px rgba(41,51,35,.03),0 8px 26px rgba(41,51,35,.07);
+  --pvbg:linear-gradient(145deg,#E6E7DF,#EDE7DB);
   --display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
   --ui:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
 }
@@ -187,6 +187,62 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 .lintlist .w{color:var(--warn);margin-left:6px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--grad);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:10px 18px;border-radius:999px;font-size:13px;max-width:calc(100% - 32px);z-index:20}
 
+/* Bookbinding details belong to the workspace, outside the manuscript and EPUB. */
+.top{padding-block:18px 14px;border-bottom:1px solid var(--rule);margin-bottom:10px}
+.brand{gap:12px;flex-wrap:wrap}
+.brand-copy{display:grid;gap:3px}
+.brand h1{font-size:26px;letter-spacing:.16em;background:none;color:var(--accent);line-height:1.2}
+.brand-tagline{font-size:10px;letter-spacing:.16em;color:var(--muted)}
+.brand .booktitle{border-left:1px solid var(--rule);padding-left:14px;max-width:280px}
+.mark{width:44px;height:48px;border-radius:4px 11px 11px 4px;position:relative;background:var(--grad);box-shadow:inset 4px 0 0 #ffffff25,2px 3px 0 var(--surface),3px 4px 0 var(--rule),0 6px 12px #16382b22}
+.mark::before{content:"";position:absolute;inset:9px 9px 12px 12px;border:1px solid #ffffff95;border-radius:1px 5px 5px 1px;background:linear-gradient(90deg,transparent 47%,#ffffff95 48% 52%,transparent 53%)}
+.mark::after{content:"";position:absolute;width:7px;height:14px;top:0;right:9px;background:#D7AC67;clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%)}
+.btn{box-shadow:0 2px 0 #263b3208}
+.btn.primary{box-shadow:0 4px 12px #16382b25}
+.action-icon{width:16px;height:16px;vertical-align:-3px;margin-right:7px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.import-help summary{width:fit-content;padding:3px 10px;border:1px solid var(--rule);border-radius:20px;background:var(--surface)}
+.notice{border:1px solid var(--rule);border-left:4px solid var(--accent);padding:10px 14px}
+.panel{border-radius:12px;border-top-width:2px}
+.workspace-heading{display:flex;align-items:center;gap:9px;margin:0;padding:12px 14px 9px;font-size:12px;letter-spacing:.08em;color:var(--pc);font-weight:700}
+.workspace-heading .step{font:600 11px var(--ui);letter-spacing:.04em;border:1px solid var(--rule);border-radius:5px;padding:3px 5px;background:var(--surface)}
+.workspace-heading::after{content:"";height:1px;flex:1;background:var(--rule);margin-left:4px}
+.aside{background:linear-gradient(180deg,var(--surface),var(--paper))}
+.tabs{margin:0 12px;background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:3px;gap:3px}
+.tabs button{border:0!important;margin:0;padding:7px 6px;border-radius:5px}
+.tabs button[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 4px #263b3215}
+.chlist{padding:12px 10px 8px;display:grid;gap:8px}
+.chlist li{border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.chbtn{padding-top:12px;padding-bottom:12px;gap:4px 9px}
+.chno{border-radius:2px 2px 7px 2px;height:30px}
+.chlist li.active{border-color:var(--accent)}
+.chlist li.active .chbtn{box-shadow:inset 3px 0 var(--accent)}
+.addch{background:var(--surface)}
+.editor>.workspace-heading{background:linear-gradient(90deg,var(--shu-soft),var(--surface))}
+.edhead{padding-top:6px}
+.chtitle{border-bottom:1px solid var(--rule);padding-bottom:10px}
+.toolbar{gap:5px;padding-block:9px;background:var(--paper)}
+.tool{background:var(--surface);border-color:var(--rule);box-shadow:0 1px 1px #263b3205}
+.tool:hover:not(:disabled){background:var(--accent-soft);border-color:var(--accent)}
+.tool:disabled{background:var(--surface);border-color:var(--rule)}
+.tool .k{display:inline-block;min-width:16px;text-align:center}
+#editorMode{border-radius:12px;background:var(--paper);padding:2px 8px}
+.status{gap:6px 12px;font-size:11px}
+.status .saved{display:flex;align-items:center;gap:5px}
+.status .saved::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--accent);flex:none}
+.pvhead{background:linear-gradient(110deg,var(--ai-soft),var(--surface));gap:8px;padding:10px 12px}
+.pvhead h2{display:flex;align-items:center;gap:8px;flex-basis:100%;letter-spacing:.08em}
+.pvhead h2 .step{font-size:11px;border:1px solid var(--rule);border-radius:5px;padding:3px 5px;background:var(--surface)}
+.pvhead h2::after{content:"";height:1px;flex:1;background:var(--rule);margin-left:4px}
+.seg{background:var(--surface);border-radius:7px}
+.seg button:focus-visible,.tabs button:focus-visible{outline-offset:-3px}
+.pvframe{background:repeating-linear-gradient(0deg,#88887506 0 1px,transparent 1px 5px),var(--pvbg);padding:16px 18px 20px}
+.pvframe>iframe{border-radius:3px;box-shadow:0 0 0 1px #74634b15,2px 3px 0 var(--surface),3px 4px 0 var(--rule),5px 6px 0 var(--surface),6px 7px 0 var(--rule),0 10px 22px #38372c18}
+@media (max-width:1200px){.brand .booktitle{max-width:180px}.app{grid-template-columns:220px minmax(0,1.05fr) minmax(0,1fr)}}
+@media (max-width:600px){
+  .top{padding-top:14px;gap:14px}.brand{width:100%;gap:10px}.brand .booktitle{flex:1;max-width:none;font-size:11px;padding-left:10px}
+  .actions{width:100%;gap:6px}.actions .btn{flex:1;padding:8px;font-size:12px}.actions .primary{flex-basis:100%}
+  .action-icon{margin-right:4px;width:14px;height:14px}.pvframe{padding:12px 14px 17px}
+}
 @media (max-width:960px){
   html,body{height:auto}
   .app{display:flex;flex-direction:column}
@@ -198,12 +254,12 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 </style>
 
 <header class="top">
-  <div class="brand"><span class="mark" aria-hidden="true"></span><h1>本工房</h1><span class="booktitle" id="hdTitle"></span></div>
+  <div class="brand"><span class="mark" aria-hidden="true"></span><div class="brand-copy"><h1>本工房</h1><span class="brand-tagline">言葉を綴り、一冊に。</span></div><span class="booktitle" id="hdTitle"></span></div>
   <div class="actions">
-    <button class="btn" id="openBtn" type="button" title="Word・EPUB・PDF・Kindle形式などの原稿を読み込みます">原稿を開く・読み込む</button>
+    <button class="btn" id="openBtn" type="button" title="Word・EPUB・PDF・Kindle形式などの原稿を読み込みます"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2V6Zm0 2h16"/></svg><span class="button-label">原稿を開く・読み込む</span></button>
     <input type="file" id="openFile" accept=".json,.doc,.docx,.epub,.pdf,.txt,.rtf,.html,.htm,.zip,.mobi,.azw,.azw3,.prc,.kpf,.jpg,.jpeg,.png,.gif,.bmp" hidden>
-    <button class="btn" id="saveBtn" type="button">原稿ファイルを保存</button>
-    <button class="btn primary" id="exportBtn" type="button">EPUBを書き出す</button>
+    <button class="btn" id="saveBtn" type="button"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 2h11l3 3v13H3Zm3 0v6h7V2M6 18v-6h8v6"/></svg>原稿ファイルを保存</button>
+    <button class="btn primary" id="exportBtn" type="button"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 12v5h14v-5"/></svg><span class="button-label">EPUBを書き出す</span></button>
   </div>
 </header>
 
@@ -230,6 +286,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 
 <main class="app">
   <section class="panel aside" aria-label="章と書誌">
+    <h2 class="workspace-heading"><span class="step" aria-hidden="true">01</span>本を組み立てる</h2>
     <div class="tabs" role="tablist">
       <button role="tab" id="tabCh" aria-selected="true" type="button">章</button>
       <button role="tab" id="tabMeta" aria-selected="false" type="button">書誌・設定</button>
@@ -295,6 +352,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
   </section>
 
   <section class="panel editor" aria-label="原稿">
+    <h2 class="workspace-heading"><span class="step" aria-hidden="true">02</span>原稿を綴る</h2>
     <div class="edhead"><input class="chtitle" id="chTitle" type="text" aria-label="章タイトル" placeholder="章タイトル">
       <div class="doorbar">
         <button class="btn small doorbtn" id="doorBtn" type="button" aria-pressed="false" title="章タイトルと扉絵だけのページを作り、本文は次のページから始めます"><span class="dicon" aria-hidden="true"></span>章扉ページ</button>
@@ -354,7 +412,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 
   <section class="panel preview" aria-label="プレビュー">
     <div class="pvhead">
-      <h2>リーダーでの見え方</h2>
+      <h2><span class="step" aria-hidden="true">03</span>リーダーでの見え方</h2>
       <div class="seg" id="readerModeSeg" aria-label="原稿とリーダーの組方向">
         <button type="button" data-mode="v">縦書き</button>
         <button type="button" data-mode="h">横書き</button>
@@ -1018,10 +1076,10 @@ async function offer(filename,data,okMsg){
 }
 async function doExport(){
   if(!window.JSZip){toast('EPUB作成用の部品を読み込めませんでした。ページを再読み込みしてください');return}
-  const b=$('#exportBtn');b.disabled=true;b.textContent='書き出し中…';
+  const b=$('#exportBtn');b.disabled=true;b.querySelector('.button-label').textContent='書き出し中…';
   try{const blob=await makeEpub();await offer(safeName(state.meta.title)+'.epub',blob,'EPUBを保存しました')}
   catch(e){toast('EPUBを作れませんでした：'+e.message)}
-  finally{b.disabled=false;b.textContent='EPUBを書き出す'}
+  finally{b.disabled=false;b.querySelector('.button-label').textContent='EPUBを書き出す'}
 }
 $('#exportBtn').onclick=()=>{const iss=lintBook();if(iss.length){showLint(iss);return}hideLint();doExport()};
 $('#lintGo').onclick=()=>{hideLint();doExport()};
@@ -1340,7 +1398,7 @@ $('#saveBtn').onclick=()=>{const imgs={};usedImages().forEach(k=>imgs[k]=state.i
   offer(safeName(state.meta.title)+'_原稿.json',JSON.stringify(Object.assign({},state,{images:imgs})),'原稿ファイルを保存しました')};
 $('#openBtn').onclick=()=>$('#openFile').click();
 $('#openFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
-  const button=$('#openBtn');button.disabled=true;button.textContent='読み込み中…';
+  const button=$('#openBtn');button.disabled=true;button.querySelector('.button-label').textContent='読み込み中…';
   try{
     if(/\.json$/i.test(f.name)){
       const o=JSON.parse(await f.text());
@@ -1362,7 +1420,7 @@ $('#openFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if
     touch();renderAll();
     showImportMessage(f.name+' から '+chs.length+' 章を読み込みました。'+[...ctx.warnings].join('。'));
   }catch(x){showImportMessage('読み込めませんでした：'+(x?.message||x))}
-  finally{button.disabled=false;button.textContent='原稿を開く・読み込む'}
+  finally{button.disabled=false;button.querySelector('.button-label').textContent='原稿を開く・読み込む'}
 };
 
 /* toast */
