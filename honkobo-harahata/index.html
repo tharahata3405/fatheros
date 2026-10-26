@@ -149,7 +149,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 textarea#body.dropping{background:var(--ai-soft);outline:2px dashed var(--ai);outline-offset:-6px}
 .toolbar{background:linear-gradient(180deg,var(--surface),var(--paper))}
 .sep{width:1px;background:var(--rule);margin:4px 2px}
-textarea#body{flex:1;min-height:0;border:0;resize:none;background:none;padding:14px 16px;font-size:16px;line-height:1.95;font-family:var(--ui)}
+textarea#body{flex:1;min-height:0;min-width:0;width:100%;border:0;resize:none;background:none;padding:14px 16px;font-size:16px;line-height:1.95;font-family:var(--ui);writing-mode:horizontal-tb;overflow:auto}
+textarea#body[data-mode="v"]{writing-mode:vertical-rl;text-orientation:mixed}
 textarea#body:focus{outline:none}
 textarea#body{-webkit-user-select:text;user-select:text;cursor:text}
 textarea#body::selection{background:#2F64D6;color:#FFFFFF}
@@ -297,6 +298,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
     <div class="edhead"><input class="chtitle" id="chTitle" type="text" aria-label="章タイトル" placeholder="章タイトル">
       <div class="doorbar">
         <button class="btn small doorbtn" id="doorBtn" type="button" aria-pressed="false" title="章タイトルと扉絵だけのページを作り、本文は次のページから始めます"><span class="dicon" aria-hidden="true"></span>章扉ページ</button>
+        <span class="hint" id="editorMode">リーダーと連動：縦書き</span>
         <span class="dooropts" id="doorOpts" hidden>
           <span class="dthumb" id="doorThumb">絵なし</span>
           <button class="btn small" id="doorImgBtn" type="button">扉絵を選ぶ</button>
@@ -353,6 +355,10 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
   <section class="panel preview" aria-label="プレビュー">
     <div class="pvhead">
       <h2>リーダーでの見え方</h2>
+      <div class="seg" id="readerModeSeg" aria-label="原稿とリーダーの組方向">
+        <button type="button" data-mode="v">縦書き</button>
+        <button type="button" data-mode="h">横書き</button>
+      </div>
       <div class="seg" id="pvSeg">
         <button type="button" data-view="ch">本文</button>
         <button type="button" data-view="title">扉</button>
@@ -731,7 +737,7 @@ function delCh(id){
   const i=state.chapters.findIndex(c=>c.id===id);state.chapters.splice(i,1);
   state.current=state.chapters[Math.max(0,i-1)].id;delArm=null;touch();renderAll();toast('章を削除しました');
 }
-function renderEditor(){const c=cur();$('#chTitle').value=c.title;const ta=$('#body');if(ta.value!==c.body)ta.value=c.body;syncEditorHistory();renderDoor()}
+function renderEditor(){const c=cur();$('#chTitle').value=c.title;const ta=$('#body');if(ta.value!==c.body)ta.value=c.body;renderWritingMode();syncEditorHistory();renderDoor()}
 function renderDoor(){
   const c=cur(),x=c.doorImg&&state.images[c.doorImg];
   $('#doorBtn').setAttribute('aria-pressed',String(!!c.door));$('#doorOpts').hidden=!c.door;
@@ -741,6 +747,12 @@ function renderDoor(){
 function renderStats(){
   const c=cur();const all=state.chapters.reduce((s,ch)=>s+countChars(ch.body),0);
   $('#stCh').textContent=fmt(countChars(c.body));$('#stAll').textContent=fmt(all);$('#stSheets').textContent=fmt(Math.ceil(all/400));
+}
+function renderWritingMode(){
+  const mode=state.meta.mode==='v'?'v':'h',ta=$('#body');
+  if(ta.dataset.mode!==mode){ta.dataset.mode=mode;ta.scrollTop=0;ta.scrollLeft=0}
+  $('#editorMode').textContent='リーダーと連動：'+(mode==='v'?'縦書き':'横書き');
+  document.querySelectorAll('#modeSeg button,#readerModeSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
 }
 function renderMeta(){
   const m=state.meta;
@@ -753,7 +765,7 @@ function renderMeta(){
   $('#mPvSize').value=String([16,18,20,22].includes(+m.pvSize)?+m.pvSize:18);
   $('#mTcy').value=String(m.autoTcy===undefined?0:m.autoTcy);
   document.querySelectorAll('#latSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lat===(m.latin||'side'))));
-  document.querySelectorAll('#modeSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===m.mode)));
+  renderWritingMode();
   $('#pvSeg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===pvView)));
   const th=$('#coverThumb');
   if(state.cover){th.innerHTML='';const im=new Image();im.src=state.cover.data;im.alt='表紙';th.appendChild(im);$('#coverDel').hidden=false;
@@ -828,7 +840,7 @@ const ta=$('#body');
 const editorHistories=new WeakMap(),HISTORY_LIMIT=100;
 let editorChapter=null,composing=false;
 function editorSnapshot(){return {body:ta.value,start:ta.selectionStart,end:ta.selectionEnd,
-  direction:ta.selectionDirection,top:ta.scrollTop,left:ta.scrollLeft}}
+  direction:ta.selectionDirection,top:ta.scrollTop,left:ta.scrollLeft,mode:ta.dataset.mode}}
 function editorHistory(){
   const c=cur();let h=editorHistories.get(c);
   if(!h){h={undo:[],redo:[],current:editorSnapshot(),kind:'',at:0};editorHistories.set(c,h)}
@@ -838,7 +850,8 @@ function updateHistoryButtons(){const h=editorHistory();
   $('#undoBtn').disabled=composing||!h.undo.length;$('#redoBtn').disabled=composing||!h.redo.length;
 }
 function restoreEditorSelection(s){
-  ta.setSelectionRange(s.start,s.end,s.direction);ta.scrollTop=s.top;ta.scrollLeft=s.left;
+  ta.setSelectionRange(s.start,s.end,s.direction);
+  ta.scrollTop=s.mode===ta.dataset.mode?s.top:0;ta.scrollLeft=s.mode===ta.dataset.mode?s.left:0;
 }
 function syncEditorHistory(){
   const c=cur(),h=editorHistory();
@@ -956,7 +969,7 @@ document.querySelectorAll('#fhSeg button').forEach(b=>b.onclick=()=>{state.meta.
 $('#mPvSize').addEventListener('change',e=>{state.meta.pvSize=+e.target.value;touch();schedulePreview()});
 $('#mTcy').addEventListener('change',e=>{state.meta.autoTcy=+e.target.value;touch();schedulePreview()});
 document.querySelectorAll('#latSeg button').forEach(b=>b.onclick=()=>{state.meta.latin=b.dataset.lat;touch();renderMeta();schedulePreview()});
-document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>{state.meta.mode=b.dataset.mode;touch();renderMeta();schedulePreview()});
+document.querySelectorAll('#modeSeg button,#readerModeSeg button').forEach(b=>b.onclick=()=>{state.meta.mode=b.dataset.mode;touch();renderMeta();schedulePreview()});
 $('#pvSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>{pvView=b.dataset.view;renderMeta();renderPreview()});
 
 /* cover */
