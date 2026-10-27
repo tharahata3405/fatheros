@@ -257,6 +257,20 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 .masthead .brand{flex:1;min-width:0;margin:0;padding:16px 20px}
 .masthead-art{display:block;width:390px;height:108px;object-fit:cover;object-position:right center;flex:none;pointer-events:none;user-select:none;mask-image:linear-gradient(90deg,transparent,#000 18%)}
 .top .actions{justify-content:flex-end}
+.toolbar-guide{margin:0;padding:7px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--rule);background:var(--paper)}
+.edit-dialog{width:min(540px,calc(100vw - 24px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--rule);border-radius:14px;padding:22px;background:var(--surface);color:var(--ink);box-shadow:0 20px 70px #0004}
+.edit-dialog::backdrop{background:#14291f88}
+.edit-dialog h2{font-family:var(--display);font-size:21px;margin:0 0 8px}
+.edit-dialog p{font-size:13px;color:var(--muted);line-height:1.7;margin:0 0 16px}
+.dialog-fields{display:grid;gap:14px}.dialog-fields label{display:grid;gap:6px;font-size:13px;font-weight:700}
+.dialog-fields input,.dialog-fields textarea,.dialog-fields select{width:100%;min-width:0;border:1px solid var(--rule);border-radius:7px;padding:10px;background:var(--paper)}
+.format-sample{min-height:90px;padding:20px;border:1px dashed var(--rule);border-radius:8px;overflow-wrap:anywhere;line-height:2;background:var(--paper);font-family:var(--display);font-size:21px}
+.format-sample em{font-style:normal;text-emphasis:filled sesame;-webkit-text-emphasis:filled sesame}
+.dialog-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:20px}
+.image-library{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;max-height:280px;overflow:auto;margin-top:14px}
+.image-choice{display:grid;gap:7px;text-align:left;min-width:0;white-space:normal;padding:8px}
+.image-choice img{width:100%;height:85px;object-fit:contain;background:var(--paper);border-radius:4px}
+.image-choice span{overflow-wrap:anywhere;font-size:11px}.image-choice[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft);padding:7px}
 @media (min-width:961px){.app{min-height:600px}}
 @media (max-width:1200px){.masthead-art{width:340px}.masthead .booktitle{max-width:none}}
 @media (min-width:961px) and (max-height:800px){.masthead{min-height:82px}.masthead-art{height:82px;width:300px}.masthead .brand{padding-block:10px}}
@@ -385,12 +399,13 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
       </div>
     </div>
     <div class="toolbar" role="toolbar" aria-label="段落とスタイル">
+      <button class="tool" type="button" data-act="format"><span class="k" aria-hidden="true">Aa</span>装飾を選ぶ</button>
       <button class="tool" id="undoBtn" type="button" data-act="undo" title="本文の編集を取り消す（Ctrl / ⌘ + Z）" aria-keyshortcuts="Control+Z Meta+Z" disabled><span class="k" aria-hidden="true">↶</span>取り消し</button>
       <button class="tool" id="redoBtn" type="button" data-act="redo" title="取り消した本文の編集をやり直す（Ctrl / ⌘ + Shift + Z、Ctrl + Y）" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y" disabled><span class="k" aria-hidden="true">↷</span>やり直し</button>
       <span class="sep" aria-hidden="true"></span>
-      <button class="tool" type="button" data-act="h3" title="行の先頭に ## をつけます"><span class="k">中</span>見出し</button>
-      <button class="tool" type="button" data-act="h4" title="行の先頭に ### をつけます"><span class="k">小</span>見出し</button>
-      <button class="tool" type="button" data-act="quote" title="行の先頭に > をつけます"><span class="k">〟</span>引用</button>
+      <button class="tool" type="button" data-act="h3" title="この行を中見出しにします。もう一度押すと解除します"><span class="k">中</span>見出し</button>
+      <button class="tool" type="button" data-act="h4" title="この行を小見出しにします。もう一度押すと解除します"><span class="k">小</span>見出し</button>
+      <button class="tool" type="button" data-act="quote" title="この行を引用にします。もう一度押すと解除します"><span class="k">〟</span>引用</button>
       <span class="sep" aria-hidden="true"></span>
       <button class="tool" type="button" data-act="ruby"><span class="k">ル</span>ルビ</button>
       <button class="tool" type="button" data-act="bouten"><span class="k">﹅</span>傍点</button>
@@ -403,6 +418,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
       <button class="tool" type="button" data-act="img" title="画像を入れます（Ctrl+V の貼り付けや、ファイルのドラッグ＆ドロップでも入ります）"><span class="k">▣</span>画像</button>
       <input type="file" id="imgFile" accept="image/*" multiple hidden>
     </div>
+    <p class="toolbar-guide">文字を選んで装飾ボタンをクリック。太字・傍点などは、もう一度押すと解除できます。</p>
     <textarea id="body" spellcheck="false" aria-label="本文"></textarea>
     <details class="help">
       <summary>書き方の決まり</summary>
@@ -452,6 +468,28 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
     <div class="pvframe" id="pvframe"></div>
   </section>
 </main>
+<dialog class="edit-dialog" id="formatDialog" aria-labelledby="formatHeading">
+  <form id="formatForm">
+    <h2 id="formatHeading">文字を装飾する</h2>
+    <p>文字と装飾を選び「適用」を押してください。ルビは読みを入力します。</p>
+    <div class="dialog-fields">
+      <label>装飾の種類<select id="formatKind"><option value="bold">太字</option><option value="bouten">傍点</option><option value="ruby">ルビ（ふりがな）</option><option value="tcy">縦中横（1〜4文字）</option><option value="up">英数字を立てる</option><option value="side">英数字を寝かせる</option></select></label>
+      <label>装飾する文字<textarea id="formatText" rows="3" required></textarea></label>
+      <label id="rubyField" hidden>ふりがな<input id="formatReading" type="text" autocomplete="off"></label>
+      <div><span class="hint">仕上がりの例</span><div class="format-sample" id="formatSample" aria-live="polite"></div></div>
+    </div>
+    <div class="dialog-actions"><button class="btn" id="removeRuby" type="button" hidden>ルビを外す</button><button class="btn" type="button" data-close-dialog="formatDialog">キャンセル</button><button class="btn primary" type="submit">適用</button></div>
+  </form>
+</dialog>
+<dialog class="edit-dialog" id="imageDialog" aria-labelledby="imageHeading">
+  <h2 id="imageHeading">画像を入れる</h2>
+  <p>新しい画像を選ぶか、読み込み済みの画像をクリックしてください。</p>
+  <div class="dialog-fields"><label>入れる位置<select id="imagePosition"><option value="cursor">カーソル位置（選択中の文字は置き換え）</option><option value="start">この章の先頭</option><option value="end">この章の末尾</option></select></label></div>
+  <div class="dialog-actions"><button class="btn" type="button" id="chooseNewImage">＋ 新しい画像を選ぶ</button></div>
+  <div class="image-library" id="imageLibrary" aria-label="読み込み済みの画像"></div>
+  <p id="imageEmpty" class="hint">読み込み済みの画像はありません。</p>
+  <div class="dialog-actions"><button class="btn" type="button" data-close-dialog="imageDialog">キャンセル</button><button class="btn primary" type="button" id="insertChosenImage" disabled>選んだ画像を挿入</button></div>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -550,20 +588,14 @@ async function prepImage(f){
   return {data,mime,w,h,name:f.name||''};
 }
 function nextImgId(){let n=0;Object.keys(state.images).forEach(k=>{const m=k.match(/^img(\d+)$/);if(m)n=Math.max(n,+m[1])});return 'img'+(n+1)}
-async function addImages(files){
+async function addImages(files,target=captureEditorTarget()){
   files=[...files].filter(f=>/^image\//.test(f.type));
   if(!files.length){toast('画像ファイルを選んでください');return}
-  const tags=[];
-  for(const f of files){
-    try{const im=await prepImage(f);const id=nextImgId();state.images[id]=im;storeImage(id,im);tags.push('［画像:'+id+'］')}
-    catch(e){toast('読み込めない画像がありました：'+(f.name||''))}
-  }
-  if(!tags.length)return;
-  const s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
-  const pre=(s===0||v[s-1]==='\n')?'':'\n',post=(e>=v.length||v[e]==='\n')?'':'\n';
-  imageToReveal=tags[0].match(IMG)[1];pvView='ch';renderMeta();
-  ta.setRangeText(pre+tags.join('\n')+post,s,e,'end');afterEdit();
-  toast(tags.length+'枚の画像を入れました');
+  const prepared=[];
+  for(const f of files){try{prepared.push(await prepImage(f))}catch(e){toast('読み込めない画像がありました：'+(f.name||''))}}
+  if(!prepared.length||!restoreEditorTarget(target))return;
+  const ids=prepared.map(im=>{const id=nextImgId();state.images[id]=im;storeImage(id,im);return id});
+  insertImageIds(ids,target);
 }
 // 章扉：章タイトル（上）と扉絵（下）だけのページ
 function doorHTML(ch,pv){
@@ -1000,7 +1032,8 @@ $('#doorFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if
   if(!/^image\//.test(f.type)){toast('画像ファイルを選んでください');return}
   try{const im=await prepImage(f);const id=nextImgId();state.images[id]=im;storeImage(id,im);cur().doorImg=id;touch();renderDoor();schedulePreview();toast('扉絵を設定しました')}
   catch(x){toast('画像を読み込めませんでした')}};
-$('#imgFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)addImages(fs)};
+$('#imgFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';const target=pendingImageTarget||captureEditorTarget();pendingImageTarget=null;
+  if(fs.length){if($('#imageDialog').open)closeAppliedDialog($('#imageDialog'));addImages(fs,target)}};
 ta.addEventListener('paste',e=>{
   const fs=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));
   if(fs.length){e.preventDefault();addImages(fs)}});
@@ -1012,10 +1045,21 @@ ta.addEventListener('input',e=>{recordEditorEdit(e);cur().body=ta.value;touch();
   const li=$('#chlist li.active .chmeta');if(li)li.textContent=fmt(countChars(ta.value))+'字'});
 $('#chTitle').addEventListener('input',e=>{cur().title=e.target.value;touch();const n=$('#chlist li.active .chname');if(n)n.textContent=e.target.value||'無題';schedulePreview()});
 function afterEdit(){ta.dispatchEvent(new Event('input'));ta.focus()}
-function wrap(before,after,ph){
-  const s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.slice(s,e)||ph;
-  ta.setRangeText(before+sel+after,s,e,'end');
-  ta.setSelectionRange(s+before.length,s+before.length+sel.length);afterEdit();
+function wrap(before,after,kind){
+  let s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.slice(s,e);
+  if(!sel){openFormat(kind);return}
+  if(sel.includes('\n')){
+    if(kind==='tcy'){openFormat(kind);return}
+    const lines=sel.split('\n'),on=lines.filter(Boolean).every(l=>l.startsWith(before)&&l.endsWith(after));
+    const value=lines.map(l=>!l?l:on?l.slice(before.length,-after.length):before+l+after).join('\n');
+    ta.setRangeText(value,s,e,'end');ta.setSelectionRange(s,s+value.length);afterEdit();return;
+  }
+  if(s>=before.length&&ta.value.slice(s-before.length,s)===before&&ta.value.slice(e,e+after.length)===after){
+    s-=before.length;e+=after.length;ta.setRangeText(sel,s,e,'end');ta.setSelectionRange(s,s+sel.length);
+  }else if(sel.startsWith(before)&&sel.endsWith(after)&&sel.length>before.length+after.length){
+    const plain=sel.slice(before.length,-after.length);ta.setRangeText(plain,s,e,'end');ta.setSelectionRange(s,s+plain.length);
+  }else{if(kind==='tcy'&&(sel.length>4||/[\^\n]/.test(sel))){openFormat(kind);return}ta.setRangeText(before+sel+after,s,e,'end');ta.setSelectionRange(s+before.length,s+before.length+sel.length)}
+  afterEdit();
 }
 function linePrefix(p){
   const s=ta.selectionStart;const ls=ta.value.lastIndexOf('\n',s-1)+1;
@@ -1033,17 +1077,95 @@ document.querySelectorAll('.tool').forEach(b=>b.addEventListener('click',()=>{
   const a=b.dataset.act;
   if(a==='undo')stepEditorHistory(false);else if(a==='redo')stepEditorHistory(true);
   else if(a==='h3')linePrefix('## ');else if(a==='h4')linePrefix('### ');else if(a==='quote')linePrefix('> ');
-  else if(a==='ruby'){const s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.slice(s,e);
-    if(sel){ta.setRangeText('｜'+sel+'《よみ》',s,e,'end');const p=s+sel.length+2;ta.setSelectionRange(p,p+2)}
-    else{ta.setRangeText('｜親文字《よみ》',s,e,'end');ta.setSelectionRange(s+1,s+4)}afterEdit()}
-  else if(a==='bouten')wrap('《《','》》','言葉');
-  else if(a==='tcy')wrap('^','^','12');
-  else if(a==='up')wrap('［立］','［／立］','2026');
-  else if(a==='side')wrap('［寝］','［／寝］','ABC');
-  else if(a==='bold')wrap('**','**','言葉');
-  else if(a==='img')$('#imgFile').click();
+  else if(a==='format')openFormat();
+  else if(a==='ruby')openFormat('ruby');
+  else if(formatPairs[a])wrap(...formatPairs[a],a);
+  else if(a==='img')openImagePicker();
   else if(a==='pb'){const s=ta.selectionStart;ta.setRangeText('\n［改ページ］\n',s,ta.selectionEnd,'end');afterEdit()}
 }));
+
+// ダイアログを開く前の章・本文・選択位置を保持する。
+function captureEditorTarget(){rememberEditorSelection();return {chapter:cur(),snapshot:editorSnapshot()}}
+function restoreEditorTarget(target){
+  if(!target||cur()!==target.chapter||ta.value!==target.snapshot.body){toast('原稿が変わりました。入れる位置を選び直してください');return false}
+  ta.focus();restoreEditorSelection(target.snapshot);rememberEditorSelection();return true;
+}
+function closeAppliedDialog(d){d.editorTarget=null;d.close()}
+document.querySelectorAll('[data-close-dialog]').forEach(b=>b.onclick=()=>$('#'+b.dataset.closeDialog).close());
+for(const id of ['formatDialog','imageDialog'])$('#'+id).addEventListener('close',()=>{
+  const d=$('#'+id),target=d.editorTarget;d.editorTarget=null;if(target)restoreEditorTarget(target);
+});
+const formatPairs={bold:['**','**'],bouten:['《《','》》'],tcy:['^','^'],up:['［立］','［／立］'],side:['［寝］','［／寝］']};
+function formatValue(kind,text,reading){const p=formatPairs[kind];return p?text.split('\n').map(t=>t?p[0]+t+p[1]:t).join('\n'):'｜'+text+'《'+reading+'》'}
+function updateFormatSample(){
+  const kind=$('#formatKind').value,t=$('#formatText'),r=$('#formatReading'),ruby=kind==='ruby';
+  $('#rubyField').hidden=!ruby;r.required=ruby;$('#removeRuby').hidden=!ruby||!$('#formatDialog').rubyExisting;
+  t.setCustomValidity(kind==='tcy'&&(t.value.length>4||/[\^\n]/.test(t.value))?'縦中横は1〜4文字で指定してください。':'');
+  if(ruby&&/[｜|《》\n]/.test(t.value))t.setCustomValidity('ルビの対象には、区切り記号や改行を含めないでください。');
+  r.setCustomValidity(ruby&&!r.value.trim()?'ふりがなを入力してください。':ruby&&/[《》\n]/.test(r.value)?'ふりがなに括弧や改行は使えません。':'');
+  const box=$('#formatSample');box.replaceChildren();box.style.writingMode=['tcy','up','side'].includes(kind)?'vertical-rl':'horizontal-tb';
+  const el=document.createElement(ruby?'ruby':kind==='bold'?'b':kind==='bouten'?'em':'span');el.textContent=t.value||'文字の見本';
+  if(ruby){const rt=document.createElement('rt');rt.textContent=r.value||'よみ';el.appendChild(rt)}
+  if(kind==='tcy')el.style.textCombineUpright='all';
+  if(kind==='up')el.style.textOrientation='upright';
+  if(kind==='side')el.style.textOrientation='sideways';box.appendChild(el);
+}
+function openFormat(kind='bold'){
+  const d=$('#formatDialog'),target=captureEditorTarget(),s=target.snapshot;let text=s.body.slice(s.start,s.end),reading='';
+  // 親文字だけ、またはルビ記法全体を選んだ場合も読みを編集できる。
+  if(kind==='ruby'){
+    let m=text.match(/^[｜|]([^《》\n]+)《([^《》\n]+)》$/);
+    if(!m&&text&&/[｜|]/.test(s.body[s.start-1]||'')){
+      const tail=s.body.slice(s.end).match(/^《([^《》\n]+)》/);
+      if(tail){m=[null,text,tail[1]];s.start--;s.end+=tail[0].length}
+    }
+    if(m){text=m[1];reading=m[2]}
+  }
+  d.editorTarget=target;$('#formatKind').value=kind;$('#formatText').value=text;$('#formatReading').value=reading;
+  d.rubyExisting=!!reading;updateFormatSample();d.showModal();
+  (kind==='ruby'&&text?$('#formatReading'):$('#formatText')).focus();
+}
+for(const id of ['formatKind','formatText','formatReading'])$('#'+id).addEventListener('input',updateFormatSample);
+function applyFormatDialog(remove=false){
+  const d=$('#formatDialog'),kind=$('#formatKind').value,text=$('#formatText').value;
+  if(!text.trim()){ $('#formatText').setCustomValidity('装飾する文字を入力してください。');$('#formatText').reportValidity();return }
+  if(!remove){updateFormatSample();if(!$('#formatForm').reportValidity())return}
+  if(!restoreEditorTarget(d.editorTarget)){d.close();return}
+  const s=ta.selectionStart,e=ta.selectionEnd,value=remove?text:formatValue(kind,text,$('#formatReading').value);
+  const offset=remove||text.includes('\n')?0:kind==='ruby'?1:formatPairs[kind][0].length;
+  closeAppliedDialog(d);ta.setRangeText(value,s,e,'end');ta.setSelectionRange(s+offset,s+offset+(text.includes('\n')?value.length:text.length));afterEdit();
+}
+$('#formatForm').onsubmit=e=>{e.preventDefault();applyFormatDialog()};
+$('#removeRuby').onclick=()=>applyFormatDialog(true);
+let chosenImage=null,pendingImageTarget=null;
+function imageInsertionTarget(){
+  const target=$('#imageDialog').editorTarget,s={...target.snapshot},pos=$('#imagePosition').value;
+  if(pos==='start')s.start=s.end=0;else if(pos==='end')s.start=s.end=s.body.length;
+  return {chapter:target.chapter,snapshot:s};
+}
+function openImagePicker(){
+  const d=$('#imageDialog');d.editorTarget=captureEditorTarget();chosenImage=null;$('#insertChosenImage').disabled=true;$('#imagePosition').value='cursor';
+  const grid=$('#imageLibrary');grid.replaceChildren();
+  Object.entries(state.images).forEach(([id,im])=>{
+    const b=document.createElement('button');b.type='button';b.className='btn image-choice';b.setAttribute('aria-pressed','false');
+    const img=new Image();img.src=im.data;img.alt='';img.loading='lazy';const label=document.createElement('span');label.textContent=im.name||id;b.append(img,label);
+    b.onclick=()=>{chosenImage=id;grid.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#insertChosenImage').disabled=false};grid.appendChild(b);
+  });
+  $('#imageEmpty').hidden=!!grid.children.length;d.showModal();
+}
+$('#chooseNewImage').onclick=()=>{pendingImageTarget=imageInsertionTarget();$('#imgFile').click()};
+$('#imgFile').addEventListener('cancel',()=>{pendingImageTarget=null});
+$('#insertChosenImage').onclick=()=>{
+  if(!chosenImage||!state.images[chosenImage])return;
+  const target=imageInsertionTarget();if(!restoreEditorTarget(target))return;closeAppliedDialog($('#imageDialog'));insertImageIds([chosenImage],target);
+};
+function insertImageIds(ids,target){
+  if(!restoreEditorTarget(target))return;
+  const s=ta.selectionStart,e=ta.selectionEnd,v=ta.value;
+  const pre=(s===0||v[s-1]==='\n')?'':'\n',post=(e>=v.length||v[e]==='\n')?'':'\n';
+  imageToReveal=ids[0];pvView='ch';renderMeta();
+  ta.setRangeText(pre+ids.map(id=>'［画像:'+id+'］').join('\n')+post,s,e,'end');afterEdit();toast(ids.length+'枚の画像を入れました');
+}
 
 $('#addCh').onclick=()=>{const n=state.chapters.length+1;const c={id:uid(),title:'第'+n+'章',body:''};
   const i=state.chapters.findIndex(x=>x.id===state.current);state.chapters.splice(i+1,0,c);state.current=c.id;touch();renderAll();$('#chTitle').select()};
