@@ -281,12 +281,47 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
   .masthead .booktitle{flex-basis:100%;padding:0;border:0;font-size:10px}
   .masthead-art{width:36%;height:112px;object-position:78% center;mask-image:linear-gradient(90deg,transparent,#000 16%)}
 }
+
+/* Illustrated book atelier, outside the manuscript and exported books. */
+.masthead{position:relative;isolation:isolate;min-height:158px;background:#143b32;border-color:#294d3d;border-radius:16px;box-shadow:0 8px 24px #143b3224}
+.masthead-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 58%;mask-image:none;z-index:-2}
+.masthead::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#102f29f2 0%,#102f29d9 22%,#102f2940 52%,transparent 75%)}
+.masthead .brand{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:7px 16px;max-width:620px;padding:24px 30px}
+.masthead .mark{grid-row:1/3;align-self:center;background:#c8a86a;box-shadow:inset 4px 0 #fff3,2px 3px 0 #e9d9ae,0 6px 12px #0004}
+.masthead .mark::after{background:#994e35}
+.masthead .brand h1{color:#fff5d9;font-size:36px;letter-spacing:.22em;text-shadow:0 2px 5px #102f2966}
+.masthead .brand-tagline{color:#ead8b1;font-size:12px;letter-spacing:.2em}
+.masthead .booktitle{grid-column:2;border:0;padding:5px 0 0;max-width:100%;color:#f6ecd6;font-size:12px}
+.top .actions{padding:3px 0 0}
+.shelf-art{height:92px;flex:none;position:relative;overflow:hidden;margin:0 12px 12px;border:1px solid var(--rule);border-radius:9px;background:#eee5d5}
+.shelf-art img{position:absolute;width:100%;height:100%;object-fit:cover;object-position:75% center;opacity:.9}
+.shelf-art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#f7efdcf5 0%,#f7efdcb3 38%,transparent 72%)}
+.shelf-art figcaption{position:relative;z-index:1;padding:15px 12px;width:65%;font:700 13px/1.8 var(--display);color:#244f3d;letter-spacing:.08em}
+.shelf-art figcaption span{display:block;font:500 9px var(--ui);letter-spacing:.12em;color:#60744e;margin-bottom:5px}
+.workspace-heading .step{background:var(--pc);color:var(--surface);border-color:transparent;box-shadow:0 2px 5px #143b3215}
+.editor>.workspace-heading{background:linear-gradient(100deg,var(--shu-soft),var(--surface));padding-block:13px}
+.pvhead h2 .step{background:var(--ai);color:var(--surface);border-color:transparent}
+.panel{border-top-width:3px}
+.chlist li.active .chno{border-radius:2px 2px 8px 2px;box-shadow:2px 2px 0 #143b3220}
+@media (min-width:961px) and (max-height:800px){
+ .masthead{min-height:124px}.masthead-art{width:100%;height:100%}.masthead .brand{padding-block:16px}.masthead .brand h1{font-size:30px}
+ .shelf-art{height:70px}.shelf-art figcaption{padding-block:9px}
+}
+@media (max-width:960px){.shelf-art{height:78px}.shelf-art img{object-position:right 60%}.shelf-art figcaption{padding-block:10px}}
+@media (max-width:600px){
+ .masthead{min-height:150px}.masthead-art{width:100%;height:100%;object-position:70% center;mask-image:none}
+ .masthead::after{background:linear-gradient(90deg,#102f29ed 0%,#102f29c9 32%,#102f2933 80%)}
+ .masthead .brand{width:100%;max-width:100%;grid-template-columns:30px minmax(0,1fr);gap:8px 10px;padding:20px 16px}
+ .masthead .brand h1{font-size:30px}.masthead .brand-tagline{font-size:10px;letter-spacing:.08em}
+ .masthead .booktitle{padding:3px 0 0;font-size:10px;max-width:220px}
+}
+
 </style>
 
 <header class="top">
   <div class="masthead">
   <div class="brand"><span class="mark" aria-hidden="true"></span><div class="brand-copy"><h1>本工房</h1><span class="brand-tagline">言葉を綴り、一冊に。</span></div><span class="booktitle" id="hdTitle"></span></div>
-    <img class="masthead-art" src="assets/writers-desk.webp" width="1200" height="403" alt="" aria-hidden="true" draggable="false" fetchpriority="high">
+    <img class="masthead-art" src="assets/book-atelier.png" width="2172" height="724" alt="" aria-hidden="true" draggable="false" fetchpriority="high">
   </div>
   <div class="actions">
     <button class="btn" id="openBtn" type="button" title="Word・EPUB・PDF・Kindle形式などの原稿を読み込みます"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2V6Zm0 2h16"/></svg><span class="button-label">原稿を開く・読み込む</span></button>
@@ -320,6 +355,10 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
 <main class="app">
   <section class="panel aside" aria-label="章と書誌">
     <h2 class="workspace-heading"><span class="step" aria-hidden="true">01</span>本を組み立てる</h2>
+    <figure class="shelf-art" aria-hidden="true">
+      <img src="assets/writers-desk.webp" width="1200" height="403" alt="" loading="lazy" draggable="false">
+      <figcaption><span>本づくりのアトリエ</span>章を綴って、<br>一冊に。</figcaption>
+    </figure>
     <div class="tabs" role="tablist">
       <button role="tab" id="tabCh" aria-selected="true" type="button">章</button>
       <button role="tab" id="tabMeta" aria-selected="false" type="button">書誌・設定</button>
