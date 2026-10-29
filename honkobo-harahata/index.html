@@ -507,7 +507,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
       <button class="tool" type="button" data-act="img" title="画像を入れます（Ctrl+V の貼り付けや、ファイルのドラッグ＆ドロップでも入ります）"><span class="k">▣</span>画像</button>
       <input type="file" id="imgFile" accept="image/*" multiple hidden>
     </div>
-    <p class="toolbar-guide">文字を選んで装飾ボタンをクリック。太字・傍点などは、もう一度押すと解除できます。</p>
+    <p class="toolbar-guide">本文をクリックするとリーダーも移動。文字を選んで装飾をクリックすると付け外しできます。</p>
     <textarea id="body" spellcheck="false" aria-label="本文"></textarea>
     <details class="help">
       <summary>書き方の決まり</summary>
@@ -693,26 +693,29 @@ function doorHTML(ch,pv){
     (x?'<div class="dimg"><img src="'+(pv?x.data:'images/'+ch.doorImg+'.'+imgExt(x.mime))+'" alt=""/></div>':'')+'</div>';
 }
 function parseChapter(ch,indent,pv){
-  const pages=[[]];const heads=[];let hn=0;
-  if(ch.door){pages[0].push(doorHTML(ch,pv));pages.push([])}
+  const pages=[[]];const heads=[];let hn=0,sourceOffset=0;
+  if(ch.door){pages[0].push(doorHTML(ch,pv));pages.push(pv?['<p class="pbmark">改ページ</p>']:[])}
   else pages[0].push('<h2 class="ch">'+inline(ch.title||'無題')+'</h2>');
   for(let line of (ch.body||'').split('\n')){
-    if(PB.test(line)){pages.push([]);continue}
+    const start=sourceOffset,end=start+line.length;sourceOffset=end+1;
+    const at=textStart=>pv?' data-source-start="'+start+'" data-source-end="'+end+'" data-text-start="'+textStart+'"':'';
+    if(PB.test(line)){pages.push(pv?['<p class="pbmark"'+at(start)+'>改ページ</p>']:[]);continue}
     const cur=pages[pages.length-1];
     const im=line.match(IMG);
     if(im){const x=state.images[im[1]];
-      if(x)cur.push('<div class="img"'+(pv?' data-image-id="'+esc(im[1])+'"':'')+'><img src="'+(pv?x.data:'images/'+im[1]+'.'+imgExt(x.mime))+'" alt=""/></div>');
-      else if(pv)cur.push('<p class="noimg">［画像 '+esc(im[1])+' が見つかりません］</p>');
+      if(x)cur.push('<div class="img"'+at(start)+(pv?' data-image-id="'+esc(im[1])+'"':'')+'><img src="'+(pv?x.data:'images/'+im[1]+'.'+imgExt(x.mime))+'" alt=""/></div>');
+      else if(pv)cur.push('<p class="noimg"'+at(start)+'>［画像 '+esc(im[1])+' が見つかりません］</p>');
       continue}
     let m;
-    if(m=line.match(/^###\s*(.+)$/)){const id='h'+(++hn);cur.push('<h4 class="sub2" id="'+id+'">'+inline(m[1])+'</h4>');continue}
-    if(m=line.match(/^##\s*(.+)$/)){const id='h'+(++hn);cur.push('<h3 class="sub" id="'+id+'">'+inline(m[1])+'</h3>');heads.push({title:m[1],page:pages.length-1,id});continue}
-    if(m=line.match(/^(?:>|＞)\s?(.*)$/)){cur.push('<p class="quote">'+inline(m[1])+'</p>');continue}
-    if(/^\s*$/.test(line)){cur.push('<p class="blank"><br/></p>');continue}
+    if(m=line.match(/^###\s*(.+)$/)){const id='h'+(++hn);cur.push('<h4 class="sub2" id="'+id+'"'+at(end-m[1].length)+'>'+inline(m[1])+'</h4>');continue}
+    if(m=line.match(/^##\s*(.+)$/)){const id='h'+(++hn);cur.push('<h3 class="sub" id="'+id+'"'+at(end-m[1].length)+'>'+inline(m[1])+'</h3>');heads.push({title:m[1],page:pages.length-1,id});continue}
+    if(m=line.match(/^(?:>|＞)\s?(.*)$/)){cur.push('<p class="quote"'+at(end-m[1].length)+'>'+inline(m[1])+'</p>');continue}
+    if(/^\s*$/.test(line)){cur.push('<p class="blank"'+at(start)+'><br/></p>');continue}
     if(indent) line=line.replace(/^[　 ]+/,'');
-    cur.push('<p>'+inline(line)+'</p>');
+    cur.push('<p'+at(end-line.length)+'>'+inline(line)+'</p>');
   }
-  const trim=a=>{while(a.length&&a[a.length-1]==='<p class="blank"><br/></p>')a.pop();while(a.length&&a[0]==='<p class="blank"><br/></p>')a.shift();return a};
+  const blank=p=>/^<p class="blank"[^>]*><br\/><\/p>$/.test(p);
+  const trim=a=>{while(a.length&&blank(a[a.length-1]))a.pop();while(a.length&&blank(a[0]))a.shift();return a};
   const out=pages.map(trim).filter((p,i)=>i===0||p.length);
   return {pages:out.map(p=>p.join('\n')),heads,door:!!ch.door};
 }
@@ -977,7 +980,7 @@ function renderAll(){renderList();renderEditor();renderStats();renderMeta();sche
 function touch(){if(state.sample){state.sample=false;$('#sampleNote').hidden=true}scheduleSave()}
 
 /* preview */
-const PVDOC='<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap"><style id="bk"></style><style>body{padding:2em 1.6em;color:#222;background:#FCFBF7;font-size:18px;box-sizing:border-box}div.img,div.img img{max-width:calc(100vw - 3.2em)}div.img img{max-height:calc(100vh - 6em)}html.v div.img,html.v div.img img{max-width:calc(100vw - 5.2em)}html.v div.img img{max-height:calc(100vh - 4em)}.pbmark{font-family:sans-serif;font-size:11px;color:#8b958f;text-indent:0;letter-spacing:.2em}html.v .pbmark{border-right:1px dashed #b7c0ba;margin:0 2em;padding-right:.6em}html.h .pbmark{border-top:1px dashed #b7c0ba;margin:2em 0;padding-top:.6em}.pvdoor{writing-mode:horizontal-tb;height:calc(100vh - 4em);width:calc((100vh - 4em)*.64);max-width:calc(100vw - 3.2em);overflow:hidden;flex:none}a{color:inherit}</style></head><body></body></html>';
+const PVDOC='<!doctype html><html lang="ja"><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@500;700&display=swap"><style id="bk"></style><style>body{padding:2em 1.6em;color:#222;background:#FCFBF7;font-size:18px;box-sizing:border-box}div.img,div.img img{max-width:calc(100vw - 3.2em)}div.img img{max-height:calc(100vh - 6em)}html.v div.img,html.v div.img img{max-width:calc(100vw - 5.2em)}html.v div.img img{max-height:calc(100vh - 4em)}.pbmark{font-family:sans-serif;font-size:11px;color:#8b958f;text-indent:0;letter-spacing:.2em}html.v .pbmark{border-right:1px dashed #b7c0ba;margin:0 2em;padding-right:.6em}html.h .pbmark{border-top:1px dashed #b7c0ba;margin:2em 0;padding-top:.6em}.pvdoor{writing-mode:horizontal-tb;height:calc(100vh - 4em);width:calc((100vh - 4em)*.64);max-width:calc(100vw - 3.2em);overflow:hidden;flex:none}.source-focus{background:#e6b84a18;outline:1px solid #c5964770;outline-offset:3px}::highlight(editor-cursor){background:#f5cc70;color:#222}a{color:inherit}</style></head><body></body></html>';
 // 端末ごとの画面（CSSピクセル）。2台表示は同じ縮尺で並べるので大きさの違いもそのまま見える
 const DEVS={tab:{w:800,h:1280,name:'タブレット'},phone:{w:390,h:844,name:'スマホ'}};
 let frames=[],pvDev='free';
@@ -1012,11 +1015,11 @@ function fitDevices(){
 }
 if(window.ResizeObserver)new ResizeObserver(fitDevices).observe($('#pvframe'));else addEventListener('resize',fitDevices);
 $('#devSeg').querySelectorAll('button').forEach(b=>b.onclick=()=>setDevice(b.dataset.dev));
-let pvT,imageToReveal=null;
-function schedulePreview(){clearTimeout(pvT);pvT=setTimeout(renderPreview,250)}
+let pvT=null,imageToReveal=null,previewCursor=null;
+function schedulePreview(){clearTimeout(pvT);pvT=setTimeout(()=>{pvT=null;renderPreview()},250)}
 function previewHTML(){
   const m=state.meta;
-  if(pvView==='ch'){const r=parseChapter(cur(),m.indent,true);if(r.door)r.pages[0]='<section class="pvdoor">'+r.pages[0]+'</section>';return r.pages.join('\n<p class="pbmark">改ページ</p>\n')}
+  if(pvView==='ch'){const r=parseChapter(cur(),m.indent,true);if(r.door)r.pages[0]='<section class="pvdoor">'+r.pages[0]+'</section>';return r.pages.join('\n')}
   if(pvView==='title')return titleHTML(m);
   if(pvView==='toc')return '<div class="toc"><h1>目次</h1>'+tocList(buildBook().toc)+'</div>';
   return coloHTML(m);
@@ -1027,8 +1030,13 @@ function renderFrame(f,html){
   const bk=d.getElementById('bk');if(!bk)return;bk.textContent=bookCSS(m);
   d.documentElement.className=m.mode;
   d.body.style.fontSize=([16,18,20,22].includes(+m.pvSize)?+m.pvSize:18)+'px';
+  d.defaultView.CSS?.highlights?.delete('editor-cursor');
   d.body.innerHTML=html===undefined?previewHTML():html;
+  f.previewChapter=cur();f.previewBody=cur().body;
   d.querySelectorAll('a').forEach(a=>a.addEventListener('click',e=>e.preventDefault()));
+  revealEditorCursor(f);
+  d.querySelectorAll('img').forEach(img=>{if(!img.complete)img.addEventListener('load',()=>{if(img.isConnected)revealEditorCursor(f)},{once:true})});
+  if(d.fonts)d.fonts.ready.then(()=>{if(f.ifr.contentDocument===d)revealEditorCursor(f)});
   if(f.revealImage){
     const id=f.revealImage,img=[...d.querySelectorAll('[data-image-id]')].find(n=>n.dataset.imageId===id)?.querySelector('img');
     if(img){const reveal=()=>{
@@ -1044,13 +1052,75 @@ function renderFrame(f,html){
   }
 }
 function renderPreview(){
-  if(imageToReveal){frames.forEach(f=>f.revealImage=imageToReveal);imageToReveal=null}
+  clearTimeout(pvT);pvT=null;
+  if(imageToReveal){previewCursor=null;frames.forEach(f=>f.revealImage=imageToReveal);imageToReveal=null}
   const rs=frames.filter(f=>f.ready);if(!rs.length)return;const html=previewHTML();rs.forEach(f=>renderFrame(f,html));
 }
+// Map manuscript offsets to visible text; markup delimiters do not consume reader positions.
+function previewTextMap(raw){
+  let text=raw,positions=Array.from({length:raw.length},(_,i)=>i);
+  const rules=[[/《《(.+?)》》/g,[1]],[/[｜|]([^｜|《》\n]+?)《([^《》\n]+?)》/g,[1,2]],
+    [new RegExp('('+KANJI+'+)《([^《》\\n]+?)》','g'),[1,2]],
+    [/［立］(.+?)［／立］/g,[1]],[/［寝］(.+?)［／寝］/g,[1]],[/\^([^\^\n]{1,4})\^/g,[1]],[/\*\*(.+?)\*\*/g,[1]]];
+  for(const [pattern,groups] of rules){
+    let next='',map=[],last=0;const append=(a,b)=>{for(let i=a;i<b;i++)map.push(positions[i])};
+    for(const m of text.matchAll(pattern)){
+      next+=text.slice(last,m.index);append(last,m.index);let seek=0;
+      for(const group of groups){const offset=m[0].indexOf(m[group],seek);seek=offset+m[group].length;
+        next+=m[group];append(m.index+offset,m.index+seek);}
+      last=m.index+m[0].length;
+    }
+    next+=text.slice(last);append(last,positions.length);text=next;positions=map;
+  }
+  return {text,positions};
+}
+function previewCursorRange(d,el,target){
+  if(el.matches('.img,.noimg,.pbmark,.blank'))return null;
+  const start=+el.dataset.textStart,raw=target.body.slice(start,+el.dataset.sourceEnd),visible=el.textContent;
+  if(!visible)return null;
+  let {text,positions}=previewTextMap(raw);
+  if(text!==visible){
+    // Unusual nested notation: align with the text actually rendered by the existing parser.
+    positions=[];let at=0;for(let i=0;i<visible.length;i++){const p=raw.indexOf(visible[i],at);positions.push(p<0?at:p);if(p>=0)at=p+1}
+  }
+  let index=positions.findIndex(p=>p>=target.offset-start);if(index<0)index=visible.length-1;
+  const walker=d.createTreeWalker(el,4);let node;
+  while((node=walker.nextNode())){
+    if(index>=node.length){index-=node.length;continue}
+    if(index>0&&/[\uDC00-\uDFFF]/.test(node.data[index]))index--;
+    const r=d.createRange(),length=node.data.codePointAt(index)>0xFFFF?2:1;
+    r.setStart(node,index);r.setEnd(node,Math.min(node.length,index+length));return r;
+  }
+  return null;
+}
+function revealEditorCursor(f){
+  const target=previewCursor;
+  if(!target||!f.ready||!f.ifr.isConnected||pvView!=='ch'||cur()!==target.chapter||cur().body!==target.body)return;
+  const d=f.ifr.contentDocument;if(!d?.body)return;
+  const blocks=[...d.querySelectorAll('[data-source-start]')];
+  const el=blocks.find(n=>+n.dataset.sourceEnd>=target.offset)||blocks[blocks.length-1]||d.querySelector('h2.ch,.pvdoor');
+  if(!el)return;
+  d.querySelectorAll('.source-focus').forEach(n=>n.classList.remove('source-focus'));el.classList.add('source-focus');
+  const range=previewCursorRange(d,el,target),w=d.defaultView;
+  if(w.CSS?.highlights&&w.Highlight){w.CSS.highlights.delete('editor-cursor');if(range)w.CSS.highlights.set('editor-cursor',new w.Highlight(range))}
+  const rect=range?.getBoundingClientRect()||el.getBoundingClientRect();
+  // Only scroll the reader's inner viewport, never the outer page or manuscript.
+  w.scrollBy({left:rect.left+rect.width/2-w.innerWidth/2,top:rect.top+rect.height/2-w.innerHeight/2,behavior:'instant'});
+}
+function followEditorClick(){
+  if(composing||ta.selectionStart!==ta.selectionEnd)return;
+  imageToReveal=null;frames.forEach(f=>f.revealImage=null);
+  previewCursor={chapter:cur(),body:ta.value,offset:ta.selectionStart};
+  const rerender=pvView!=='ch'||pvT||frames.some(f=>f.ready&&(f.previewChapter!==cur()||f.previewBody!==ta.value));
+  if(pvView!=='ch'){pvView='ch';renderMeta()}
+  if(rerender)renderPreview();else frames.forEach(revealEditorCursor);
+}
+
 setDevice(pvDev);
 
 /* editor events */
 const ta=$('#body');
+ta.addEventListener('click',followEditorClick);
 // 本文の編集履歴。章オブジェクトごとに保持し、別の原稿へ持ち越さない。
 const editorHistories=new WeakMap(),HISTORY_LIMIT=100;
 let editorChapter=null,composing=false;
