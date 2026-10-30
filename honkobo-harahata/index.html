@@ -146,14 +146,17 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tool .k{font-family:var(--display);font-weight:700;color:var(--accent);margin-right:3px}
 .tool[data-act=ruby] .k,.tool[data-act=bouten] .k,.tool[data-act=tcy] .k,.tool[data-act=up] .k,.tool[data-act=side] .k,.tool[data-act=bold] .k{color:var(--shu)}
 .tool[data-act=pb] .k,.tool[data-act=img] .k{color:var(--ai)}
-textarea#body.dropping{background:var(--ai-soft);outline:2px dashed var(--ai);outline-offset:-6px}
+#body.dropping{background:var(--ai-soft);outline:2px dashed var(--ai);outline-offset:-6px}
 .toolbar{background:linear-gradient(180deg,var(--surface),var(--paper))}
 .sep{width:1px;background:var(--rule);margin:4px 2px}
-textarea#body{flex:1;min-height:0;min-width:0;width:100%;border:0;resize:none;background:none;padding:14px 16px;font-size:16px;line-height:1.95;font-family:var(--ui);writing-mode:horizontal-tb;overflow:auto}
-textarea#body[data-mode="v"]{writing-mode:vertical-rl;text-orientation:mixed}
-textarea#body:focus{outline:none}
-textarea#body{-webkit-user-select:text;user-select:text;cursor:text}
-textarea#body::selection{background:#2F64D6;color:#FFFFFF}
+#body{flex:1;min-height:0;min-width:0;width:100%;border:0;resize:none;background:none;padding:14px 16px;font-size:16px;line-height:1.95;font-family:var(--ui);writing-mode:horizontal-tb;overflow:auto}
+#body{white-space:pre-wrap;overflow-wrap:anywhere;outline:none}
+#body[data-mode="v"] .editor-tcy{text-combine-upright:all;-webkit-text-combine:horizontal}
+#body .editor-tcy{border-radius:2px;background:var(--accent-soft)}
+#body[data-mode="v"]{writing-mode:vertical-rl;text-orientation:mixed}
+#body:focus{outline:none}
+#body{-webkit-user-select:text;user-select:text;cursor:text}
+#body::selection,#body *::selection{background:#2F64D6;color:#FFFFFF}
 .status{display:flex;gap:14px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--rule);color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
 .status b{color:var(--accent);font-weight:700}
 .status{background:var(--paper)}
@@ -247,7 +250,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
   html,body{height:auto}
   .app{display:flex;flex-direction:column}
   .panel.aside .tabpane{max-height:320px}
-  textarea#body{min-height:55vh}
+  #body{min-height:55vh}
   .pvframe{height:65vh;flex:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -508,7 +511,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
       <input type="file" id="imgFile" accept="image/*" multiple hidden>
     </div>
     <p class="toolbar-guide">本文をクリックするとリーダーも移動。文字を選んで装飾をクリックすると付け外しできます。</p>
-    <textarea id="body" spellcheck="false" aria-label="本文"></textarea>
+    <div id="body" contenteditable="true" role="textbox" aria-multiline="true" tabindex="0" spellcheck="false" aria-label="本文"></div>
     <details class="help">
       <summary>書き方の決まり</summary>
       <div class="helpgrid">
@@ -1118,8 +1121,129 @@ function followEditorClick(){
 
 setDevice(pvDev);
 
+// Keep source offsets and the existing editing/history API while rendering explicit tate-chu-yoko.
+function installTcyEditor(el){
+  let saved={start:0,end:0,direction:'forward'},ime=false,rendered='';
+  function model(){
+    let value='';const texts=[],bounds=new WeakMap(),elements=[];
+    function walk(node){
+      if(node.nodeType===3){texts.push({node,start:value.length,end:value.length+node.data.length});value+=node.data;return}
+      if(node.nodeType!==1&&node!==el)return;
+      if(node.nodeName==='BR'){if(node.dataset.editorTail)return;if(!(node.parentNode.childNodes.length===1&&(node.parentNode===el||/^(DIV|P)$/.test(node.parentNode.nodeName))))value+='\n';return}
+      const content=node.textContent,token=node!==el&&node.dataset?.editorTcy==='true'&&/^[^\^\n]{1,4}$/.test(content);
+      if(token)value+='^';
+      const points=[];const children=[...node.childNodes];
+      children.forEach((child,i)=>{
+        const block=child.nodeType===1&&/^(DIV|P)$/.test(child.nodeName);
+        const previous=children[i-1];
+        if(block&&i>0&&!(previous.nodeName==='BR'&&!previous.dataset.editorTail))value+='\n';
+        points.push(value.length);walk(child);
+      });
+      points.push(value.length);bounds.set(node,points);elements.push({node,points});
+      if(token)value+='^';
+    }
+    walk(el);return {value,texts,bounds,elements};
+  }
+  function offset(m,node,index){
+    if(node?.nodeType===3){const t=m.texts.find(t=>t.node===node);return t?Math.min(t.end,t.start+index):null}
+    return m.bounds.get(node)?.[index]??null;
+  }
+  function selection(m=model()){
+    const s=getSelection();
+    if(document.activeElement===el&&s?.rangeCount&&el.contains(s.anchorNode)&&el.contains(s.focusNode)){
+      const a=offset(m,s.anchorNode,s.anchorOffset),f=offset(m,s.focusNode,s.focusOffset);
+      if(a!==null&&f!==null)saved={start:Math.min(a,f),end:Math.max(a,f),direction:f<a?'backward':'forward'};
+    }
+    return {...saved};
+  }
+  function point(m,index){
+    for(const t of m.texts)if(index>=t.start&&index<=t.end)return [t.node,index-t.start];
+    for(const e of m.elements){const i=e.points.indexOf(index);if(i>=0)return [e.node,i]}
+    // Positions within a hidden delimiter resolve to the closest visible character boundary.
+    let best=[el,0],distance=Infinity;
+    for(const t of m.texts)for(const [n,i,p] of [[t.node,0,t.start],[t.node,t.node.length,t.end]]){
+      if(Math.abs(p-index)<distance){distance=Math.abs(p-index);best=[n,i]}
+    }
+    return best;
+  }
+  function applySelection(){
+    if(document.activeElement!==el)return;
+    const m=model(),a=point(m,saved.start),b=point(m,saved.end),s=getSelection();
+    if(saved.direction==='backward')s.setBaseAndExtent(...b,...a);else s.setBaseAndExtent(...a,...b);
+  }
+  function render(value){
+    const fragment=document.createDocumentFragment();let last=0;
+    for(const m of value.matchAll(/\^([^\^\n]{1,4})\^/g)){
+      fragment.append(document.createTextNode(value.slice(last,m.index)));
+      const span=document.createElement('span');span.dataset.editorTcy='true';span.className='editor-tcy';span.textContent=m[1];fragment.append(span);last=m.index+m[0].length;
+    }
+    fragment.append(document.createTextNode(value.slice(last)));
+    if(!value||value.endsWith('\n')){const br=document.createElement('br');br.dataset.editorTail='true';fragment.append(br)}
+    el.replaceChildren(fragment);rendered=value;
+  }
+  function keepCaretVisible(){
+    const s=getSelection();if(!s?.rangeCount||!el.contains(s.focusNode))return;
+    const r=document.createRange();r.setStart(s.focusNode,s.focusOffset);r.collapse(true);
+    const caret=r.getBoundingClientRect(),box=el.getBoundingClientRect();if(!caret.height&&!caret.width)return;
+    const pad=16;el.scrollBy({left:caret.left<box.left+pad?caret.left-box.left-pad:caret.right>box.right-pad?caret.right-box.right+pad:0,
+      top:caret.top<box.top+pad?caret.top-box.top-pad:caret.bottom>box.bottom-pad?caret.bottom-box.bottom+pad:0,behavior:'instant'});
+  }
+  function normalize(){
+    if(ime)return;const m=model(),s=selection(m);if(m.value!==rendered){const top=el.scrollTop,left=el.scrollLeft;render(m.value);saved=s;applySelection();el.scrollTop=top;el.scrollLeft=left;keepCaretVisible()}
+  }
+  Object.defineProperties(el,{
+    value:{get:()=>model().value,set:value=>{render(String(value));saved={start:0,end:0,direction:'forward'};applySelection()}},
+    selectionStart:{get:()=>selection().start,set:n=>el.setSelectionRange(n,Math.max(n,selection().end))},
+    selectionEnd:{get:()=>selection().end,set:n=>el.setSelectionRange(Math.min(n,selection().start),n)},
+    selectionDirection:{get:()=>selection().direction}
+  });
+  el.setSelectionRange=(start,end,direction='forward')=>{
+    const length=model().value.length;end=Math.max(0,Math.min(length,end));start=Math.max(0,Math.min(end,start));
+    saved={start,end,direction};applySelection();el.dispatchEvent(new Event('select'));
+  };
+  el.setRangeText=(text,start=el.selectionStart,end=el.selectionEnd,mode='preserve')=>{
+    const value=el.value,prior=selection(),top=el.scrollTop,left=el.scrollLeft;
+    start=Math.max(0,Math.min(value.length,start));end=Math.max(start,Math.min(value.length,end));text=String(text);
+    render(value.slice(0,start)+text+value.slice(end));const next=start+text.length,delta=text.length-(end-start);
+    if(mode==='end')saved={start:next,end:next,direction:'forward'};
+    else if(mode==='start')saved={start,end:start,direction:'forward'};
+    else if(mode==='select')saved={start,end:next,direction:'forward'};
+    else saved={start:prior.start>end?prior.start+delta:Math.min(prior.start,start),end:prior.end>end?prior.end+delta:Math.max(prior.end,next),direction:prior.direction};
+    applySelection();el.scrollTop=top;el.scrollLeft=left;
+  };
+  function insertPlain(text,type){
+    el.dispatchEvent(new Event('select'));
+    const s=getSelection();if(!s?.rangeCount||!el.contains(s.anchorNode)||!el.contains(s.focusNode))applySelection();
+    const range=getSelection().getRangeAt(0);range.deleteContents();
+    const node=document.createTextNode(text);range.insertNode(node);range.setStartAfter(node);range.collapse(true);s.removeAllRanges();s.addRange(range);
+    el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:type,data:text}));
+  }
+  el.addEventListener('input',normalize);
+  el.addEventListener('compositionstart',()=>{ime=true});
+  el.addEventListener('compositionend',()=>{ime=false;normalize()});
+  el.addEventListener('beforeinput',e=>{
+    if(!ime&&(e.inputType==='insertParagraph'||e.inputType==='insertLineBreak')){e.preventDefault();insertPlain('\n',e.inputType)}
+  });
+  el.addEventListener('paste',e=>{
+    if([...e.clipboardData.files].some(f=>/^image\//.test(f.type)))return;
+    e.preventDefault();insertPlain(e.clipboardData.getData('text/plain').replace(/\r\n?/g,'\n'),'insertFromPaste');
+  });
+  el.addEventListener('drop',e=>{
+    if([...e.dataTransfer.types].includes('Files'))return;
+    e.preventDefault();el.focus();
+    const p=document.caretPositionFromPoint?.(e.clientX,e.clientY),r=p?null:document.caretRangeFromPoint?.(e.clientX,e.clientY);
+    const node=p?.offsetNode||r?.startContainer,index=p?.offset??r?.startOffset;
+    if(node&&el.contains(node))getSelection().setBaseAndExtent(node,index,node,index);
+    insertPlain(e.dataTransfer.getData('text/plain').replace(/\r\n?/g,'\n'),'insertFromDrop');
+  });
+  el.addEventListener('focus',()=>{if(!el.contains(getSelection()?.anchorNode))applySelection()});
+  document.addEventListener('selectionchange',()=>{if(document.activeElement===el){selection();el.dispatchEvent(new Event('select'))}});
+  el.value='';
+}
+
 /* editor events */
 const ta=$('#body');
+installTcyEditor(ta);
 ta.addEventListener('click',followEditorClick);
 // 本文の編集履歴。章オブジェクトごとに保持し、別の原稿へ持ち越さない。
 const editorHistories=new WeakMap(),HISTORY_LIMIT=100;
