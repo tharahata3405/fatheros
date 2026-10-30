@@ -380,7 +380,7 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
     <button class="btn" id="openBtn" type="button" title="Word・EPUB・PDF・Kindle形式などの原稿を読み込みます"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2V6Zm0 2h16"/></svg><span class="button-label">原稿を開く・読み込む</span></button>
     <input type="file" id="openFile" accept=".json,.doc,.docx,.epub,.pdf,.txt,.rtf,.html,.htm,.zip,.mobi,.azw,.azw3,.prc,.kpf,.jpg,.jpeg,.png,.gif,.bmp" hidden>
     <button class="btn" id="saveBtn" type="button"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 2h11l3 3v13H3Zm3 0v6h7V2M6 18v-6h8v6"/></svg>原稿ファイルを保存</button>
-    <button class="btn primary" id="exportBtn" type="button"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 12v5h14v-5"/></svg><span class="button-label">EPUBを書き出す</span></button>
+    <button class="btn primary" id="exportBtn" type="button"><svg class="action-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 12v5h14v-5"/></svg><span class="button-label">形式を選んで書き出す</span></button>
   </div>
 </header>
 
@@ -560,6 +560,23 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
     <div class="pvframe" id="pvframe"></div>
   </section>
 </main>
+<dialog class="edit-dialog" id="exportDialog" aria-labelledby="exportHeading">
+  <form id="exportForm">
+    <h2 id="exportHeading">形式を選んで書き出す</h2>
+    <p>Kindle電子書籍の本文ファイルを書き出します。日本語の縦書き・ルビ・縦中横にはEPUBがおすすめです。</p>
+    <div class="dialog-fields"><label>ファイル形式<select id="exportFormat" aria-describedby="exportDescription">
+      <option value="epub">EPUB（.epub）おすすめ</option>
+      <option value="docx">Word（.docx）</option>
+      <option value="html">HTML＋画像（.zip）</option>
+      <option value="rtf">リッチテキスト（.rtf）</option>
+      <option value="txt">テキスト（.txt）</option>
+    </select></label></div>
+    <p id="exportDescription" role="status" style="margin-top:14px"></p>
+    <p>表紙はKDPで別に登録してください。アップロード後はKindleプレビューアーで仕上がりを確認できます。紙の本は、判型・余白・ページ数に合わせた別の組版が必要です。</p>
+    <p>日本語のKindle本文用PDF、MOBI・AZWは出力対象外です。KPFはKindle Createで作成する形式のため、この画面では出力しません。<a href="https://kdp.amazon.com/ja_JP/help/topic/G200634390" target="_blank" rel="noopener noreferrer">KDPの対応形式</a></p>
+    <div class="dialog-actions"><button class="btn" type="button" data-close-dialog="exportDialog">キャンセル</button><button class="btn primary" id="exportConfirm" type="submit">EPUBを書き出す</button></div>
+  </form>
+</dialog>
 <dialog class="edit-dialog" id="formatDialog" aria-labelledby="formatHeading">
   <form id="formatForm">
     <h2 id="formatHeading">文字を装飾する</h2>
@@ -594,7 +611,7 @@ const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 
 function sample(){
   const a={id:uid(),title:'はじめに',body:
-'この本は、本工房で作った見本です。\n｜原稿《げんこう》を書いて、右上の「EPUBを書き出す」を押すと、Kindleにそのまま出せる電子書籍ができあがります。\n\n強調したい言葉には《《傍点》》を打てます。\n数字は^20^年、^5^冊のように、縦中横にすると縦書きでも読みやすくなります。'};
+'この本は、本工房で作った見本です。\n｜原稿《げんこう》を書いて、右上の「形式を選んで書き出す」からEPUBを選ぶと、Kindleにそのまま出せる電子書籍ができあがります。\n\n強調したい言葉には《《傍点》》を打てます。\n数字は^20^年、^5^冊のように、縦中横にすると縦書きでも読みやすくなります。'};
   const b={id:uid(),title:'第一章　夜の工作室',body:
 '## 机の上の道具\n\n夜、家族が寝静まったあと、机の上に道具を並べる。\nやすり、ピンセット、それから小さな金型《かながた》の部品。\n\n> 手を動かしているあいだだけ、頭が静かになる。\n\nそんな言葉を、どこかで読んだ気がする。\n\n［改ページ］\n\n## 朝になって\n\n**一晩でできたのは、ほんの少し。**\nそれでも、昨日より一歩だけ前に進んでいる。'};
   const c={id:uid(),title:'おわりに',body:'ここまで読んでくださって、ありがとうございました。\n章は左の「＋ 章を追加」で増やせます。'};
@@ -853,6 +870,138 @@ async function makeEpub(){
   '\n</spine>\n</package>\n';
   zip.file('OEBPS/content.opf',opf);
   return zip.generateAsync({type:'blob',mimeType:'application/epub+zip',compression:'DEFLATE'});
+}
+
+/* ---------- KDP export formats ---------- */
+// All formats share the same parsed book, including chapter doors and page breaks.
+function exportPages(){
+  const {docs,toc}=buildBook();
+  const ids=new Map(docs.map(d=>[d.href,d.id]));
+  const target=href=>{const [file,anchor]=href.split('#');return (ids.get(file)||file)+(anchor?'-'+anchor:'')};
+  return [docs[0],{id:'book-toc',title:'目次',body:'<div class="toc"><h1>目次</h1>'+tocList(toc)+'</div>'},...docs.slice(1)].map(d=>{
+    const root=document.createElement('div');root.innerHTML=d.body;
+    root.querySelectorAll('[id]').forEach(el=>el.id=d.id+'-'+el.id);
+    root.querySelectorAll('a[href]').forEach(el=>el.setAttribute('href','#'+target(el.getAttribute('href'))));
+    return {...d,root};
+  });
+}
+async function makeHtmlZip(){
+  const zip=new JSZip(),m=state.meta;
+  const pages=exportPages().map(d=>'<section class="export-page '+(d.cls||'')+'" id="'+d.id+'">'+d.root.innerHTML+'</section>').join('\n');
+  zip.file('index.html','<!doctype html>\n<html lang="ja"><head><meta charset="UTF-8"><title>'+esc(m.title||'無題')+'</title><link rel="stylesheet" href="book.css"></head><body>'+pages+'</body></html>');
+  zip.file('book.css',bookCSS(m)+'\n.export-page{break-before:page;page-break-before:always;padding:1em}.export-page:first-child{break-before:auto;page-break-before:auto}.export-page.door{writing-mode:horizontal-tb}');
+  for(const id of usedImages()){const im=state.images[id];zip.file('images/'+id+'.'+imgExt(im.mime),im.data.split(',')[1],{base64:true})}
+  return zip.generateAsync({type:'blob',mimeType:'application/zip',compression:'DEFLATE'});
+}
+// TXT/RTF use horizontal text. Keep ruby readings as parentheses, not editor markers.
+function exportText(node){
+  if(node.nodeType===3)return node.nodeValue;
+  if(node.nodeType!==1)return '';
+  if(node.localName==='img')return '';
+  if(node.localName==='ruby')return [...node.childNodes].filter(n=>n.localName!=='rt').map(exportText).join('')+'（'+[...node.querySelectorAll('rt')].map(n=>n.textContent).join('')+'）';
+  return [...node.childNodes].filter(n=>node.localName!=='li'||n.localName!=='ol').map(exportText).join('');
+}
+function exportBlocks(root){return [...root.querySelectorAll('h1,h2,h3,h4,p,li')]}
+function makeText(){
+  const text=exportPages().map(d=>exportBlocks(d.root).map(exportText).join('\r\n')).join('\r\n\r\n');
+  return new Blob(['\uFEFF',text],{type:'text/plain;charset=utf-8'});
+}
+const rtfEscape=s=>String(s).split('').map(c=>{const n=c.charCodeAt(0);return /[\\{}]/.test(c)?'\\'+c:n>127?'\\u'+(n>32767?n-65536:n)+'?':n===10?'\\line ':n===9?'\\tab ':n<32?'':c}).join('');
+function rtfRuns(node){
+  if(node.nodeType===3)return rtfEscape(node.nodeValue);
+  if(node.nodeType!==1||node.localName==='img')return '';
+  if(node.localName==='ruby')return rtfEscape(exportText(node));
+  const s=[...node.childNodes].filter(n=>node.localName!=='li'||n.localName!=='ol').map(rtfRuns).join('');
+  return node.localName==='b'?'{\\b '+s+'}':s;
+}
+function makeRtf(){
+  const text=exportPages().map(d=>exportBlocks(d.root).map(el=>{
+    const heading=/^h[1-4]$/.test(el.localName);
+    return '\\pard\\plain\\f0\\fs'+(heading?'30\\b':'22')+' '+rtfRuns(el)+'\\par\n';
+  }).join('')).join('\\page\n');
+  return new Blob(['{\\rtf1\\ansi\\ansicpg1252\\deff0\\uc1{\\fonttbl{\\f0\\froman Times New Roman;}}\n'+text+'}'],{type:'application/rtf'});
+}
+const xmlEsc=s=>esc(String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\ufffe\uffff]/g,''));
+async function makeDocx(){
+  const zip=new JSZip(),m=state.meta,v=m.mode==='v',pages=exportPages();
+  const W='http://schemas.openxmlformats.org/wordprocessingml/2006/main',R='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const relNS='http://schemas.openxmlformats.org/package/2006/relationships';
+  const xml=s=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+s;
+  const relationships=[{id:'rStyles',type:'styles',target:'styles.xml'}],images=new Map();
+  let imageNumber=0,bookmarkNumber=0;
+  const bookmarks=new Map();
+  for(const p of pages){bookmarks.set(p.id,'bk'+(++bookmarkNumber));for(const el of p.root.querySelectorAll('[id]'))bookmarks.set(el.id,'bk'+(++bookmarkNumber))}
+  const mark=id=>{const name=bookmarks.get(id);return name?'<w:bookmarkStart w:id="'+name.slice(2)+'" w:name="'+name+'"/><w:bookmarkEnd w:id="'+name.slice(2)+'"/>':''};
+  const run=(text,props='')=>'<w:r>'+(props?'<w:rPr>'+props+'</w:rPr>':'')+'<w:t xml:space="preserve">'+xmlEsc(text)+'</w:t></w:r>';
+  function drawing(el){
+    const src=el.getAttribute('src'),match=src&&src.match(/^images\/(.+)\.(png|jpg)$/),im=match&&state.images[match[1]];
+    if(!im)return '';
+    if(!images.has(src)){
+      const name='image'+(images.size+1)+'.'+imgExt(im.mime),id='rImage'+(images.size+1);
+      images.set(src,id);zip.file('word/media/'+name,im.data.split(',')[1],{base64:true});relationships.push({id,type:'image',target:'media/'+name});
+    }
+    const k=Math.min(1,446/(im.w||446),680/(im.h||680)),cx=Math.round((im.w||446)*k*9525),cy=Math.round((im.h||680)*k*9525),n=++imageNumber;
+    return '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="'+cx+'" cy="'+cy+'"/><wp:docPr id="'+n+'" name="画像'+n+'"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="'+n+'" name="画像'+n+'"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="'+images.get(src)+'"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
+  }
+  function runs(node,props=''){
+    if(node.nodeType===3)return run(node.nodeValue,props);
+    if(node.nodeType!==1)return '';
+    const tag=node.localName;
+    if(tag==='img')return drawing(node);
+    if(tag==='br')return '<w:r><w:br/></w:r>';
+    if(tag==='ruby'){
+      const base=[...node.childNodes].filter(n=>n.localName!=='rt').map(n=>runs(n,props)).join('');
+      const reading=[...node.querySelectorAll('rt')].map(n=>n.textContent).join('');
+      return '<w:r><w:ruby><w:rubyPr><w:rubyAlign w:val="center"/><w:hps w:val="11"/><w:hpsRaise w:val="22"/><w:hpsBaseText w:val="22"/><w:lid w:val="ja-JP"/></w:rubyPr><w:rt>'+run(reading,'<w:sz w:val="11"/>')+'</w:rt><w:rubyBase>'+base+'</w:rubyBase></w:ruby></w:r>';
+    }
+    if(tag==='b')props+='<w:b/>';
+    if(node.classList.contains('sesame'))props+='<w:em w:val="dot"/>';
+    if(v&&node.classList.contains('tcy'))props+='<w:eastAsianLayout w:combine="1"/>';
+    if(v&&node.classList.contains('upright'))props+='<w:eastAsianLayout w:vert="1"/>';
+    const text=[...node.childNodes].map(n=>runs(n,props)).join('');
+    const anchor=tag==='a'&&bookmarks.get((node.getAttribute('href')||'').slice(1));
+    return anchor?'<w:hyperlink w:anchor="'+anchor+'" w:history="1">'+text+'</w:hyperlink>':text;
+  }
+  function blocks(node){
+    if(node.nodeType!==1)return '';
+    const tag=node.localName;
+    if(/^h[1-4]$/.test(tag)||tag==='p'||tag==='li'&&!node.querySelector('li')||tag==='div'&&node.querySelector(':scope > img')){
+      const level=/^h[1-4]$/.test(tag)?Math.min(3,Math.max(1,Number(tag[1])-1)):0;
+      let props=level?'<w:pStyle w:val="Heading'+level+'"/>':'';
+      if(node.querySelector('img'))props+='<w:keepNext/><w:jc w:val="center"/>';
+      if(node.classList.contains('quote'))props+='<w:ind w:left="440" w:firstLine="0"/>';
+      else if(!level&&tag==='p'&&m.indent&&!node.closest('.colophon,.titlepage')&&!node.classList.contains('blank'))props+='<w:ind w:firstLine="220"/>';
+      return '<w:p><w:pPr>'+props+'</w:pPr>'+mark(node.id)+runs(node)+'</w:p>';
+    }
+    // A parent TOC list item has both its own link and nested entries.
+    if(tag==='li')return '<w:p>'+runs(node.querySelector(':scope > a'))+'</w:p>'+[...node.children].filter(n=>n.localName==='ol').map(blocks).join('');
+    return [...node.children].map(blocks).join('');
+  }
+  const body=pages.map((d,i)=>'<w:p><w:pPr>'+(i?'<w:pageBreakBefore/>':'')+'<w:spacing w:after="0"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr>'+mark(d.id)+'</w:p>'+blocks(d.root)).join('');
+  const sect='<w:sectPr><w:pgSz w:w="8391" w:h="11906"/><w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850" w:header="425" w:footer="425" w:gutter="0"/><w:textDirection w:val="'+(v?'tbRl':'lrTb')+'"/></w:sectPr>';
+  zip.file('word/document.xml',xml('<w:document xmlns:w="'+W+'" xmlns:r="'+R+'" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>'+body+sect+'</w:body></w:document>'));
+  const bodyFont=m.fontBody==='gothic'?'Yu Gothic':'Yu Mincho',headFont=m.fontHead==='mincho'?'Yu Mincho':'Yu Gothic';
+  const headings=[['fsCh',1.5],['fsSub',1.2],['fsSub2',1.05]].map(([key,fallback],i)=>'<w:style w:type="paragraph" w:styleId="Heading'+(i+1)+'"><w:name w:val="heading '+(i+1)+'"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="240" w:after="120"/><w:outlineLvl w:val="'+i+'"/></w:pPr><w:rPr><w:rFonts w:eastAsia="'+headFont+'"/><w:b/><w:sz w:val="'+Math.round(22*fsv(m,key,fallback))+'"/></w:rPr></w:style>').join('');
+  zip.file('word/styles.xml',xml('<w:styles xmlns:w="'+W+'"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="'+bodyFont+'"/><w:sz w:val="22"/><w:lang w:val="ja-JP" w:eastAsia="ja-JP"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:line="444" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>'+headings+'</w:styles>'));
+  zip.file('word/_rels/document.xml.rels',xml('<Relationships xmlns="'+relNS+'">'+relationships.map(r=>'<Relationship Id="'+r.id+'" Type="'+R+'/'+r.type+'" Target="'+r.target+'"/>').join('')+'</Relationships>'));
+  zip.file('_rels/.rels',xml('<Relationships xmlns="'+relNS+'"><Relationship Id="rDocument" Type="'+R+'/officeDocument" Target="word/document.xml"/><Relationship Id="rCore" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>'));
+  zip.file('docProps/core.xml',xml('<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>'+xmlEsc(m.title||'無題')+'</dc:title><dc:creator>'+xmlEsc(m.author||'')+'</dc:creator><dc:language>ja</dc:language></cp:coreProperties>'));
+  zip.file('[Content_Types].xml',xml('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>'));
+  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',compression:'DEFLATE'});
+}
+const EXPORT_FORMATS={
+  epub:{label:'EPUB',ext:'epub',zip:true,make:makeEpub,description:'縦書き・横書き、ルビ、傍点、縦中横、画像、目次を含めます。現在のリーダー表示に近い仕上がりを優先する形式です。'},
+  docx:{label:'Word',ext:'docx',zip:true,make:makeDocx,description:'Wordで編集できる文書です。書字方向、ルビ、太字、傍点、縦中横、画像、章見出しと目次を含めます。WordやKDPでの変換によって配置・字体は変わるため、仕上がりを確認してください。'},
+  html:{label:'HTML＋画像',ext:'zip',zip:true,make:makeHtmlZip,description:'本文（index.html）・書式（book.css）・画像を1つのZIPにまとめます。KDPにはZIPのままアップロードします。縦書きやルビの書式を含みますが、変換後の表示は確認してください。'},
+  rtf:{label:'リッチテキスト',ext:'rtf',make:makeRtf,description:'横書きの文書として、章見出し・太字・改ページを含めます。画像・縦書き・傍点・縦中横・目次リンクは含みません。ルビは「漢字（よみ）」という本文に変換します。'},
+  txt:{label:'テキスト',ext:'txt',make:makeText,description:'文字のみをUTF-8で保存します。画像・文字装飾・縦書き・改ページ・目次リンクは含みません。ルビは「漢字（よみ）」という本文に変換します。'}
+};
+let pendingExport='epub',exportBusy=false;
+function describeExport(){
+  const key=$('#exportFormat').value,format=EXPORT_FORMATS[key];
+  const omitted=['rtf','txt'].includes(key)?usedImages().length:0;
+  $('#exportDescription').textContent=format.description+(omitted?' この形式では使用中の画像'+omitted+'枚が省略されます。':'');
+  $('#exportConfirm').textContent=format.label+'を書き出す';
 }
 
 /* ---------- persistence ---------- */
@@ -1498,14 +1647,22 @@ async function offer(filename,data,okMsg){
   try{const r=await dl.save({filename,data});if(r&&r.status==='saved')toast(okMsg)}
   catch(e){const c=e&&e.code;toast(c==='declined'?'保存をキャンセルしました':c==='rate_limited'?'少し待ってからもう一度お試しください':'保存できませんでした（'+(e&&e.message||c)+'）')}
 }
-async function doExport(){
-  if(!window.JSZip){toast('EPUB作成用の部品を読み込めませんでした。ページを再読み込みしてください');return}
-  const b=$('#exportBtn');b.disabled=true;b.querySelector('.button-label').textContent='書き出し中…';
-  try{const blob=await makeEpub();await offer(safeName(state.meta.title)+'.epub',blob,'EPUBを保存しました')}
-  catch(e){toast('EPUBを作れませんでした：'+e.message)}
-  finally{b.disabled=false;b.querySelector('.button-label').textContent='EPUBを書き出す'}
+async function doExport(key=pendingExport){
+  if(exportBusy)return;
+  const format=EXPORT_FORMATS[key];if(!format)return;
+  if(format.zip&&!window.JSZip){toast('書き出し用の部品を読み込めませんでした。ページを再読み込みしてください');return}
+  const name=safeName(state.meta.title)+'.'+format.ext,b=$('#exportBtn');
+  exportBusy=true;b.disabled=true;b.querySelector('.button-label').textContent='書き出し中…';
+  try{const blob=await format.make();await offer(name,blob,format.label+'を保存しました')}
+  catch(e){toast(format.label+'を作れませんでした：'+e.message)}
+  finally{exportBusy=false;b.disabled=false;b.querySelector('.button-label').textContent='形式を選んで書き出す'}
 }
-$('#exportBtn').onclick=()=>{const iss=lintBook();if(iss.length){showLint(iss);return}hideLint();doExport()};
+$('#exportBtn').onclick=()=>{describeExport();$('#exportDialog').showModal()};
+$('#exportFormat').onchange=describeExport;
+$('#exportForm').onsubmit=e=>{
+  e.preventDefault();pendingExport=$('#exportFormat').value;$('#exportDialog').close();
+  const iss=lintBook();if(iss.length){showLint(iss);return}hideLint();doExport();
+};
 $('#lintGo').onclick=()=>{hideLint();doExport()};
 $('#lintClose').onclick=hideLint;
 
