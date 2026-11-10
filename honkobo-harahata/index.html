@@ -483,6 +483,49 @@ body{background:var(--bg);padding-inline:max(20px,env(safe-area-inset-left,0px))
   #body{padding:16px}.pvframe{padding:12px}.chtitle{font-size:22px}
 }
 
+/* Warm paper and a walnut desk, limited to the application background. */
+:root{
+  --paper:#f1e8d9;--surface:#fffaf0;--ink:#3d3027;--muted:#786858;--rule:#d9c9b3;
+  --accent:#805239;--accent-2:#805239;--accent-soft:#eee0ca;--accent-ink:#fffaf2;
+  --shu:#805239;--shu-soft:#f4e6d3;--ai:#805239;--ai-soft:#f1e6d7;
+  --gold:#b18a50;--warn:#ab4330;--grad:linear-gradient(#805239,#805239);
+  --bg:#e9ddc9;--pvbg:#e5d6bd;
+  --desk-glow:#fff8e6b3;--desk-grain:#8c674209;--paper-edge:#d3bfa0;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#30261f;--surface:#251f1a;--ink:#f0e2cc;--muted:#c1ad91;--rule:#594735;
+  --accent:#d8ad7d;--accent-2:#d8ad7d;--accent-soft:#493726;--accent-ink:#251b13;
+  --shu:#d8ad7d;--shu-soft:#3b2c20;--ai:#d8ad7d;--ai-soft:#3b2c20;
+  --warn:#ffa48a;--grad:linear-gradient(#d8ad7d,#d8ad7d);--bg:#211a15;--pvbg:#3b2e22;
+  --desk-glow:#87572c25;--desk-grain:#c39a6408;--paper-edge:#59432d;
+}}
+:root[data-theme="dark"]{
+  --paper:#30261f;--surface:#251f1a;--ink:#f0e2cc;--muted:#c1ad91;--rule:#594735;
+  --accent:#d8ad7d;--accent-2:#d8ad7d;--accent-soft:#493726;--accent-ink:#251b13;
+  --shu:#d8ad7d;--shu-soft:#3b2c20;--ai:#d8ad7d;--ai-soft:#3b2c20;
+  --warn:#ffa48a;--grad:linear-gradient(#d8ad7d,#d8ad7d);--bg:#211a15;--pvbg:#3b2e22;
+  --desk-glow:#87572c25;--desk-grain:#c39a6408;--paper-edge:#59432d;
+}
+body{
+  background-color:var(--bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23805b37' opacity='.045' filter='url(%23grain)' d='M0 0h180v180H0z'/%3E%3C/svg%3E"),radial-gradient(ellipse at 22% 0,var(--desk-glow),transparent 70%),repeating-linear-gradient(94deg,transparent 0 48px,var(--desk-grain) 49px 50px,transparent 51px 117px);
+  background-attachment:fixed;
+}
+.masthead .brand h1{font-family:var(--display);letter-spacing:.02em;color:var(--ink)}
+.masthead-art{filter:none;opacity:1;box-shadow:0 1px 8px #50351e14}
+.top{border-bottom-color:var(--accent)}
+.panel{border-top-color:var(--accent);box-shadow:0 3px 14px #60401e08}
+.panel.aside{background:transparent;box-shadow:none}
+.notice{background:var(--surface);border-left-color:var(--accent)}
+.workspace-heading,.editor>.workspace-heading,.pvhead{background:var(--surface)}
+.chlist li.active .chbtn{background:var(--accent-soft);box-shadow:inset 2px 0 var(--accent)}
+.tabs button[aria-selected="true"]{box-shadow:inset 0 -2px var(--accent)}
+.toolbar,.toolbar-guide,.status{background:var(--surface)}
+#body{background:var(--surface)}
+.pvframe{background:radial-gradient(ellipse at 50% 5%,var(--desk-glow),transparent 85%),var(--pvbg)}
+.pvframe>iframe{box-shadow:0 0 0 1px var(--paper-edge),2px 3px 0 var(--surface),3px 4px 0 var(--paper-edge),0 6px 18px #50351e16}
+.field input[type="text"],.field input[type="date"],.fsgrid input,.field select,.dialog-fields input,.dialog-fields textarea,.dialog-fields select{background:var(--surface)}
+
 </style>
 
 <header class="top">
