@@ -369,11 +369,125 @@ details.help summary{padding:8px 14px;cursor:pointer;color:var(--muted)}
   .top .actions{flex-wrap:wrap}.top .actions .btn{padding:8px 6px;font-size:11px}
   .top .actions .primary{flex-basis:100%}
 }
+/* Editorial workspace: strong type, a restrained image strip, and ruled columns.
+   This stylesheet styles application controls only; bookCSS and exports stay separate. */
+:root{
+  --paper:#f3f3ef;--surface:#fff;--ink:#20211f;--muted:#666862;--rule:#d8d9d3;
+  --accent:#252722;--accent-2:#252722;--accent-soft:#eaece5;--accent-ink:#fff;
+  --shu:#252722;--shu-soft:#f0f0ea;--ai:#252722;--ai-soft:#f0f0ea;
+  --gold:#85886d;--warn:#b13d2e;--grad:linear-gradient(#252722,#252722);
+  --bg:#f7f7f3;--shadow:none;--pvbg:#e8e9e3;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#23241f;--surface:#191a17;--ink:#f1f1eb;--muted:#b3b5aa;--rule:#46483f;
+  --accent:#e7e9dc;--accent-2:#e7e9dc;--accent-soft:#35382e;--accent-ink:#191a17;
+  --shu:#e7e9dc;--shu-soft:#2b2d25;--ai:#e7e9dc;--ai-soft:#2b2d25;
+  --warn:#ff9988;--grad:linear-gradient(#e7e9dc,#e7e9dc);--bg:#141511;--shadow:none;--pvbg:#292c24;
+}}
+:root[data-theme="dark"]{
+  --paper:#23241f;--surface:#191a17;--ink:#f1f1eb;--muted:#b3b5aa;--rule:#46483f;
+  --accent:#e7e9dc;--accent-2:#e7e9dc;--accent-soft:#35382e;--accent-ink:#191a17;
+  --shu:#e7e9dc;--shu-soft:#2b2d25;--ai:#e7e9dc;--ai-soft:#2b2d25;
+  --warn:#ff9988;--grad:linear-gradient(#e7e9dc,#e7e9dc);--bg:#141511;--shadow:none;--pvbg:#292c24;
+}
+body{background:var(--bg);padding-inline:max(20px,env(safe-area-inset-left,0px)) max(20px,env(safe-area-inset-right,0px))}
+.top{gap:24px;padding-block:12px;margin-bottom:8px;border-bottom:1px solid var(--ink)}
+.masthead{min-height:62px;gap:14px;border:0;border-radius:0;background:none;box-shadow:none;isolation:auto}
+.masthead::after{display:none}
+.masthead .brand{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;max-width:none;padding:0;position:static}
+.masthead .mark{display:none}
+.masthead .brand-copy{display:flex;align-items:baseline;gap:14px;min-width:0}
+.masthead .brand h1{font-family:var(--ui);font-size:34px;font-weight:700;letter-spacing:-.05em;color:var(--ink);text-shadow:none;white-space:nowrap}
+.masthead .brand-tagline{display:block;font:500 9px/1.3 var(--ui);letter-spacing:.16em;color:var(--muted)}
+.masthead .booktitle{grid-column:1;padding:0;color:var(--muted);font-size:11px;line-height:1.4}
+.masthead-art{position:static;width:clamp(80px,12vw,185px);height:62px;flex:none;object-position:70% 62%;filter:grayscale(.8);opacity:.9;z-index:auto;mask-image:none}
+.top .actions{gap:8px}
+.btn,.tool,.seg,.tabs,.tabs button,.chlist li,.chbtn,.cover .thumb,.dthumb,.doorbtn .dicon{border-radius:0;box-shadow:none}
+.btn{background:transparent;box-shadow:none;transition:background .15s,color .15s,border-color .15s}
+.btn:hover{background:var(--accent-soft);color:var(--ink);border-color:var(--ink)}
+.btn.primary,.btn.primary:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);box-shadow:none;transform:none}
+.btn.primary:hover{opacity:.85}
+.top .actions .btn{min-height:40px;padding:9px 12px;font-size:12px}
+.import-help summary{border:0;border-radius:0;padding:2px 0;background:none;text-decoration:underline;text-underline-offset:4px}
+.import-help{margin-bottom:8px;font-size:11px}
+.notice{border:0;border-left:2px solid var(--ink);border-radius:0;background:var(--paper);padding:8px 12px;font-size:12px}
+.notice.lint{background:var(--shu-soft)}
+.app{gap:18px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.panel{border:0;border-top:1px solid var(--ink);border-radius:0;box-shadow:none;background:var(--surface)}
+.panel.aside{background:transparent}
+.workspace-heading,.editor>.workspace-heading,.pvhead h2{font-family:var(--ui);font-size:13px;font-weight:700;letter-spacing:0;color:var(--ink);background:none}
+.workspace-heading,.editor>.workspace-heading{min-height:39px;padding:10px 12px;border-bottom:1px solid var(--rule)}
+.workspace-heading::after,.pvhead h2::after{display:none}
+.workspace-heading .step,.pvhead h2 .step{padding:0;margin-right:4px;background:none;color:var(--muted);border:0;border-radius:0;box-shadow:none;font:400 11px/1.2 ui-monospace,monospace}
+.tabs{margin:0;padding:0;border:0;border-bottom:1px solid var(--rule);background:none;gap:0}
+.tabs button{padding:11px 6px;background:none;border-radius:0}
+.tabs button[aria-selected="true"]{background:none;color:var(--ink);box-shadow:inset 0 -2px var(--ink)}
+.chlist{padding:0;gap:0}
+.chlist li{border:0;border-bottom:1px solid var(--rule);background:transparent}
+.chbtn{grid-template-columns:30px minmax(0,1fr);padding:15px 8px 14px 23px;gap:5px 10px}
+.chlist li.active .chbtn{background:var(--accent-soft);box-shadow:inset 2px 0 var(--ink)}
+.chno,.chlist li.active .chno{width:28px;height:28px;background:none;color:var(--ink);border-radius:0;box-shadow:none;font:400 19px/1.2 var(--ui);justify-content:start}
+.chname{font-weight:700;font-size:13px}
+.chtools{padding:0 8px 10px 63px}
+.chtools .btn{border:0;padding:3px 6px;font-size:11px;text-decoration:underline;text-underline-offset:3px}
+.addch{margin:14px 0;width:100%;background:none;border:1px solid var(--rule);text-align:left;min-height:38px}
+.edhead{padding:8px 16px 0}
+.chtitle{font-family:var(--ui);font-size:23px;font-weight:500;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+.toolbar{background:var(--surface);padding:8px 12px;gap:4px 3px}
+.tool{padding:4px 6px;font-size:12px;background:none;border-color:transparent;box-shadow:none}
+.tool:hover:not(:disabled){background:var(--accent-soft);border-color:transparent}
+.tool:disabled{background:none;border-color:transparent}
+.tool[data-act="format"],.tool[data-act="img"]{border-color:var(--rule)}
+.tool .k{color:var(--ink)}
+.toolbar-guide{background:var(--surface);padding:6px 16px;color:var(--muted);font-size:10px}
+#editorMode{border-radius:0;background:var(--paper)}
+#body{padding:20px 22px}
+#body .editor-tcy{border-radius:0;background:var(--accent-soft)}
+#body:focus-visible{box-shadow:inset 0 0 0 1px var(--rule)}
+.status{background:var(--surface);padding:7px 12px;font-size:10px}
+.status .saved::before{width:4px;height:4px;background:var(--ink)}
+.pvhead{padding:10px 12px;background:var(--surface);gap:7px}
+.pvhead h2{padding:0;min-height:18px;margin-bottom:3px}
+.seg{background:transparent}
+.seg button[aria-pressed="true"],.pvhead .seg button[aria-pressed="true"],.pvhead #devSeg button[aria-pressed="true"],.doorbtn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.pvhead .seg button{font-size:11px;padding:6px 7px}
+.pvframe{background:var(--pvbg);padding:18px}
+.pvframe>iframe{border-radius:0;box-shadow:0 0 0 1px #20211f12,0 3px 12px #20211f08}
+.dev .screen{box-shadow:0 4px 16px #0002}
+.field input[type="text"],.field input[type="date"],.fsgrid input,.field select,.dialog-fields input,.dialog-fields textarea,.dialog-fields select{border-radius:0;background:var(--surface)}
+.field input:focus{box-shadow:none}
+.edit-dialog{border-radius:0;border:1px solid var(--ink);padding:26px;box-shadow:0 16px 60px #0003}
+.edit-dialog::backdrop{background:#14151180}
+.edit-dialog h2{font-family:var(--ui);font-weight:500;font-size:24px;letter-spacing:-.03em}
+.format-sample,.image-choice img{border-radius:0}
+.toast{border-radius:0;background:var(--accent);color:var(--accent-ink);box-shadow:0 3px 16px #0002}
+@media(min-width:961px){.app{grid-template-columns:210px minmax(0,1.05fr) minmax(0,1fr)}}
+@media(min-width:961px) and (max-width:1200px){
+  body{padding-inline:14px}.top{gap:14px}.masthead-art{display:none}
+  .top .actions .btn{font-size:11px;padding-inline:8px}.app{grid-template-columns:180px minmax(0,1.05fr) minmax(0,1fr);gap:12px}
+  .masthead .brand-tagline{font-size:8px;letter-spacing:.08em}.chtitle{font-size:21px}
+}
+@media(min-width:961px) and (max-height:700px){
+  .top{padding-block:8px}.masthead{min-height:52px}.masthead-art{height:52px}
+  .toolbar{padding-block:5px}.edhead{padding-top:5px}.pvhead{padding-block:7px}
+}
+@media(max-width:960px){
+  body{padding-inline:16px}.top{gap:12px}.masthead-art{width:30%;max-width:220px}.app{gap:20px}
+}
+@media(max-width:600px){
+  body{padding-inline:12px}.top{padding-block:10px;gap:10px}.masthead{min-height:54px}
+  .masthead .brand h1{font-size:30px}.masthead .brand-tagline{font-size:8px;letter-spacing:.08em}.masthead .brand-copy{gap:10px}
+  .masthead-art{width:70px;height:54px}.masthead .booktitle{font-size:10px}
+  .top .actions{gap:6px}.top .actions .btn{font-size:11px;min-height:38px;padding:8px 5px}
+  .top .actions .primary{flex-basis:100%}.edit-dialog{padding:20px}
+  #body{padding:16px}.pvframe{padding:12px}.chtitle{font-size:22px}
+}
+
 </style>
 
 <header class="top">
   <div class="masthead">
-  <div class="brand"><span class="mark" aria-hidden="true"></span><div class="brand-copy"><h1>本工房</h1><span class="brand-tagline">言葉を綴り、一冊に。</span></div><span class="booktitle" id="hdTitle"></span></div>
+  <div class="brand"><span class="mark" aria-hidden="true"></span><div class="brand-copy"><h1>本工房</h1><span class="brand-tagline">HONKOBO<br>BOOK MAKING STUDIO</span></div><span class="booktitle" id="hdTitle"></span></div>
     <img class="masthead-art" src="assets/book-atelier.png" width="2172" height="724" alt="" aria-hidden="true" draggable="false" fetchpriority="high">
   </div>
   <div class="actions">
