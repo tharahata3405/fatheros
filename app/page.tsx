@@ -54,7 +54,7 @@ export default function Home() {
           <h1 id="hero-title"><span>父親OSを、</span><br /><span>更新する。</span></h1>
           <p className="hero-subcopy">家族が変われば、<br />父親としての「当たり前」も変わっていい。</p>
           <p className="hero-note">ものづくりと発信を通して、<br />父親と家族の関係を考える活動をしています。</p>
-          <a className="scroll-link" href="#father-os">父親OSとは？ <span aria-hidden="true">↓</span></a>
+          <div className="hero-actions"><a className="scroll-link" href="#father-os">父親OSとは？ <span aria-hidden="true">↓</span></a><a className="hero-diagnosis" href="#diagnosis">父親OS診断を試す</a></div>
         </div>
         <figure className="hero-symbol">
           <img
