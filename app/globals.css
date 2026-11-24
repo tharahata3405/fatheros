@@ -713,3 +713,25 @@ figcaption { font-size: 13px; line-height: 1.75; color: var(--muted); }
   .assumption-grid, .book-grid, .entrance-grid { margin-top: 32px; gap: 16px; }
   .hero-symbol img { aspect-ratio: 1 / 1; }
 }
+
+
+/* === Motion off (user request, 2026-11-24) ===
+   No up/down movement for text or photos: the drifting hero background,
+   the rising load-in, the floating hero photo, the scroll reveals and
+   the photo pop-out are all disabled, and hover states no longer lift
+   elements vertically. Static gradients, shadows and tilts remain. */
+.hero, .hero-symbol, .hero-content > * { animation: none !important; }
+.definition, .assumptions, .update, .returning, .viewpoints,
+.child-idea, .profile, .books, .entrances, .diagnosis,
+.returning-image, .profile-image, .making-photo, .idea-flow > figure {
+  animation: none !important;
+}
+.hero-symbol:hover {
+  transform: perspective(1100px) rotateY(2deg) rotateX(0deg);
+}
+.assumption-card:hover, .entrance-grid a:hover,
+.returning-image:hover, .profile-image:hover {
+  transform: none;
+}
+.book-card:hover { transform: perspective(1000px) rotateY(-6deg); }
+.diagnosis-button:hover { transform: none; }
