@@ -735,3 +735,312 @@ figcaption { font-size: 13px; line-height: 1.75; color: var(--muted); }
 }
 .book-card:hover { transform: perspective(1000px) rotateY(-6deg); }
 .diagnosis-button:hover { transform: none; }
+
+
+/* === Typography & color review (user request, 2026-11-24) ===
+   - Body copy switches from light gray to a deep, readable ink tone;
+     gray is kept only for captions and notes, and darkened a step.
+   - The lamp amber used as text on light backgrounds is deepened so
+     small labels and numbers stay legible (decorative amber unchanged).
+   - Decorative numerals unify on the same Mincho serif as headings.
+   - Lead copy and section labels gain a step of size. */
+:root { --muted: #4f5c70; --warm-text: #9a671d; }
+
+.definition .lead-copy, .assumption-card p, .update-copy p,
+.returning-copy p:not(.section-number), .viewpoints li p,
+.making-copy > p:last-child { color: var(--ink-soft); }
+
+.assumption-card > span, .viewpoints li span, .update-flow > span {
+  color: var(--warm-text);
+}
+.assumption-card:nth-child(2) > span { color: var(--accent); }
+.assumption-card:nth-child(3) > span { color: var(--ink); }
+
+.assumption-card > span, .viewpoints li span, .idea-flow span {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+.section-number { font-size: 13px; }
+.definition .lead-copy { font-size: 18px; }
+
+
+/* === Gold accents & ornament (user request, 2026-11-24) ===
+   Lamp-gold used as quiet decoration: diamond markers, gradient rules,
+   a framed hero photo, gold primary buttons, and gilded edges on the
+   navy statement, book cards and footer. Static only, no motion. */
+
+/* Diamond marker before each section label, richer gradient rule under it */
+.section-number::before {
+  content: "";
+  display: inline-block;
+  width: 8px; height: 8px;
+  margin-right: 12px;
+  vertical-align: 1px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #f2cd8d, var(--warm) 60%, #b57e2e);
+  box-shadow: 0 1px 4px rgba(154, 103, 29, .45);
+}
+.section-number::after {
+  background: linear-gradient(90deg, #b57e2e, var(--warm) 45%, #f2cd8d);
+}
+
+/* Hero photo in a gilded frame */
+.hero-symbol {
+  border: 1px solid rgba(224, 164, 88, .65);
+  box-shadow: 0 24px 60px rgba(30, 42, 68, .18), 0 0 0 6px rgba(224, 164, 88, .14);
+}
+
+/* Primary diagnosis buttons in gold, with deep ink text */
+.desktop-nav .nav-diagnosis, .diagnosis-button {
+  background: linear-gradient(135deg, #f0c078 0%, var(--warm) 55%, #cf8f3d 100%);
+  color: #2a1f08;
+  box-shadow: 0 10px 24px rgba(154, 103, 29, .30);
+}
+.desktop-nav .nav-diagnosis:hover, .diagnosis-button:hover {
+  background: linear-gradient(135deg, #e9b566 0%, #d99e45 55%, #c07f2c 100%);
+}
+
+/* Navy statement edged with gold lines */
+.brand-statement {
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, transparent, var(--warm) 30%, #f2cd8d 50%, var(--warm) 70%, transparent) 1;
+}
+
+/* Book cards get a gilded top edge; profile stats a gold cap */
+.book-card { border-top: 3px solid transparent; border-image: linear-gradient(90deg, var(--warm), #f2cd8d) 1; }
+.profile-stats div { border-top: 3px solid var(--warm); }
+
+/* Profile quote with a gold rule and quote mark */
+.profile blockquote {
+  border-left: 3px solid var(--warm);
+  position: relative;
+}
+.profile blockquote::before {
+  content: "“";
+  position: absolute;
+  top: -14px; left: 10px;
+  font-family: "Noto Serif JP", serif;
+  font-size: 44px;
+  line-height: 1;
+  color: var(--warm);
+}
+
+/* Closing line in gold gradient text */
+.closing > strong {
+  background: linear-gradient(100deg, #b57e2e, var(--warm) 55%, #a8742a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Entrance cards warm up with a gold edge on hover */
+.entrance-grid a:hover { border-color: rgba(224, 164, 88, .8); }
+
+/* Footer topped with a gold gradient hairline */
+footer {
+  border-top: 3px solid transparent;
+  border-image: linear-gradient(90deg, transparent, var(--warm) 35%, #f2cd8d 50%, var(--warm) 65%, transparent) 1;
+}
+
+::selection { background: var(--warm-soft); }
+
+
+/* === Smartphone refinement (user request, 2026-11-24) ===
+   Full-width stacked buttons, a 16px reading size, calmer photo
+   sizes, and tighter cards so nothing squeezes or overflows. */
+html, body { overflow-x: clip; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+
+  /* Hero buttons stack full-width, easy to tap */
+  .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+  .scroll-link, .hero-diagnosis { justify-content: center; width: 100%; }
+
+  /* Diagnosis button spans the column */
+  .diagnosis-button { display: flex; justify-content: center; width: 100%; }
+
+  /* Portrait photos stay a comfortable size, centered */
+  .making-photo { width: 100%; max-width: 400px; margin-inline: auto; }
+  .profile-image { margin-inline: auto; }
+
+  /* Flow boxes and orbit labels breathe less, read better */
+  .update-flow > div { padding: 16px 14px; font-size: 15px; }
+  .os-orbit span { padding: 13px 6px; font-size: 15px; }
+
+  /* Entrance cards do not need desktop height on a phone */
+  .entrance-grid a { min-height: 128px; }
+
+  /* Book count numeral slightly smaller next to a stacked heading */
+  .books-heading > p strong { font-size: 44px; }
+}
+
+
+/* === Smartphone refinement 2 (user feedback, 2026-11-24) ===
+   Tighter margins, larger text, and bigger tap targets on phones. */
+@media (max-width: 640px) {
+  /* Less air: sections sit closer, page edges narrower */
+  .section-shell { padding: 54px 18px; }
+  .hero { padding-top: 96px; padding-bottom: 44px; gap: 32px; }
+  .quiet-question, .father-image, .brand-statement { padding: 56px 18px; }
+  .closing { padding: 56px 18px 44px; }
+  .tool-note { padding: 22px 18px; }
+  .update-copy { padding: 20px 18px; }
+
+  /* Larger reading text */
+  body { font-size: 17px; }
+  h2 { font-size: clamp(28px, 8vw, 32px); }
+  h3 { font-size: 19px; }
+  .definition .lead-copy { font-size: 19px; }
+  .assumption-card p, .viewpoints li p { font-size: 16px; }
+  .hero-note, .update-copy p, .returning-copy p:not(.section-number),
+  .closing > p:not(.section-number) { font-size: 17px; }
+
+  /* Bigger tap targets: header menu, buttons, footer links */
+  html { scroll-padding-top: 88px; }
+  .site-header { height: 72px; }
+  .menu summary { min-height: 48px; padding: 14px 6px; font-size: 16px; }
+  .menu nav a { min-height: 52px; padding: 14px 6px; font-size: 16px; }
+  .scroll-link, .hero-diagnosis, .diagnosis-button { min-height: 56px; font-size: 16px; }
+  footer nav a { min-height: 48px; }
+  .entrance-grid a { padding: 20px 18px; }
+}
+
+
+/* === Text rhythm & alignment (user request, 2026-11-24) ===
+   Line breaks, line spacing and positioning, tuned for Japanese:
+   - Headings break in balanced, phrase-aware lines
+   - Body copy shares one generous line height and slight letter spacing
+   - Gold rules under section labels sit centered in centered sections */
+body { letter-spacing: .02em; }
+h1, h2, h3 { line-break: strict; }
+@supports (word-break: auto-phrase) {
+  h1, h2, h3 { word-break: auto-phrase; }
+}
+p { text-wrap: pretty; }
+
+.definition .lead-copy, .update-copy p, .returning-copy p,
+.making-copy > p:last-child, .profile-copy > p, .assumption-card p,
+.viewpoints li p, .diagnosis > p:not(.section-number),
+.closing > p:not(.section-number), .hero-note { line-height: 1.95; }
+
+.quiet-question .section-number::after,
+.brand-statement .section-number::after,
+.father-image .section-number::after { margin-inline: auto; }
+
+/* Centered sections keep their paragraphs centered but not stretched */
+.quiet-question p, .father-image p { margin-inline: auto; }
+
+@media (max-width: 640px) {
+  /* On phones, body copy gets a touch more air between lines */
+  .definition .lead-copy, .update-copy p, .returning-copy p,
+  .profile-copy > p, .closing > p:not(.section-number) { line-height: 2; }
+  .hero h1 { line-height: 1.4; }
+  h2 { line-height: 1.6; }
+}
+
+
+/* === Infographics (user request, 2026-11-24) ===
+   The update flow becomes a numbered step diagram, the four views
+   gain a cycle chart, and the making steps read as a step bar. */
+
+/* --- Update flow: 4 connected steps --- */
+.flow-steps {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  position: relative;
+  text-align: center;
+}
+.flow-steps::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  border-top: 2px dashed rgba(154, 103, 29, .55);
+}
+.flow-steps li {
+  position: relative;
+  padding: 62px 14px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.flow-num {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translate(-50%, 0);
+  margin-top: 0;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: #fff;
+  font-family: "Noto Serif JP", serif;
+  font-size: 18px; font-weight: 700;
+  box-shadow: 0 6px 14px rgba(46, 74, 122, .3);
+  z-index: 1;
+}
+.flow-steps li { padding-top: 58px; }
+.flow-num { top: -21px; }
+.flow-steps { margin-top: 26px; }
+.flow-steps p { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.7; }
+.flow-steps .flow-choice {
+  background: linear-gradient(150deg, var(--ink-soft), var(--ink));
+  border-color: var(--ink);
+  color: #fff;
+}
+.flow-choice .flow-num { background: linear-gradient(135deg, #f0c078, #cf8f3d); color: #2a1f08; }
+.flow-choice i { color: rgba(255, 255, 255, .6); font-style: normal; margin: 0 6px; }
+
+/* --- Four views: cycle chart --- */
+.cycle-figure { margin: 44px auto 6px; max-width: 340px; text-align: center; }
+.cycle-figure svg { width: 100%; height: auto; display: block; }
+.cycle-word {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 17px; font-weight: 700; fill: var(--ink);
+}
+.cycle-word-long { font-size: 12.5px; }
+.cycle-center {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+  font-size: 16px; font-weight: 600; fill: var(--accent-deep);
+}
+.cycle-figure figcaption { margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+
+/* --- Making steps: numbered step bar --- */
+.tool-note ol { list-style: none; }
+.tool-note ol li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-weight: 700; font-size: 15px;
+  text-align: left;
+}
+.tool-note ol li span {
+  flex: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #f0c078, #cf8f3d);
+  color: #2a1f08;
+  font-family: "Noto Serif JP", serif;
+  font-size: 13px; font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  /* Steps stack vertically, line runs down the left */
+  .flow-steps { grid-template-columns: 1fr; gap: 26px; margin-top: 30px; text-align: left; }
+  .flow-steps::before {
+    top: 4%; bottom: 4%; left: 21px; right: auto;
+    border-top: none; border-left: 2px dashed rgba(154, 103, 29, .55);
+  }
+  .flow-steps li { padding: 16px 16px 16px 62px; }
+  .flow-num { top: 50%; left: 0; transform: translate(0, -50%); margin-left: 0; }
+  .flow-steps p { font-size: 16px; }
+  .cycle-figure { max-width: 300px; margin-top: 34px; }
+}

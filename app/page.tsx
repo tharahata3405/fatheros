@@ -93,7 +93,12 @@ export default function Home() {
       <section className="update section-shell" aria-labelledby="update-title">
         <p className="section-number">03 / UPDATE</p><h2 id="update-title">間違っているから、<br />直す。ではありません。</h2>
         <div className="update-flow" aria-label="父親OSを見直す流れ">
-          <div>これまでの父親OS</div><span>↓</span><div>一度、見る</div><span>↓</span><div>今の家族にも合っている？</div><span>↓</span><div className="choice"><b>残す</b><i>／</i><b>少し更新する</b></div>
+          <ol className="flow-steps">
+            <li><span className="flow-num">1</span><p>これまでの父親OS</p></li>
+            <li><span className="flow-num">2</span><p>一度、見る</p></li>
+            <li><span className="flow-num">3</span><p>今の家族にも合っている？</p></li>
+            <li className="flow-choice"><span className="flow-num">4</span><p><b>残す</b><i>／</i><b>少し更新する</b></p></li>
+          </ol>
         </div>
         <div className="update-copy"><p>今までの考え方が、<br />間違っていたわけではありません。</p><p>これまでの自分を支えてきたものを残しながら、今の家族に合わなくなったところだけを見直していく。</p><p>私は、それを「更新」と考えています。</p></div>
       </section>
@@ -109,6 +114,39 @@ export default function Home() {
 
       <section className="viewpoints section-shell" aria-labelledby="viewpoints-title">
         <p className="section-number">05 / FOUR VIEWS</p><h2 id="viewpoints-title">父親OSを見る、<br />4つの視点。</h2>
+        <figure className="cycle-figure" aria-label="4つの視点の循環図">
+          <svg viewBox="0 0 340 340" role="img" aria-label="整える、気づく、選ぶ、積み重ねるが円を描いて巡る図">
+            <defs>
+              <marker id="cycle-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#9a671d" />
+              </marker>
+            </defs>
+            <circle cx="170" cy="170" r="118" fill="none" stroke="#d8dee8" strokeWidth="2" strokeDasharray="3 7" />
+            <path d="M 222 62 A 118 118 0 0 1 278 118" fill="none" stroke="#9a671d" strokeWidth="2.5" markerEnd="url(#cycle-arrow)" />
+            <path d="M 278 222 A 118 118 0 0 1 222 278" fill="none" stroke="#9a671d" strokeWidth="2.5" markerEnd="url(#cycle-arrow)" />
+            <path d="M 118 278 A 118 118 0 0 1 62 222" fill="none" stroke="#9a671d" strokeWidth="2.5" markerEnd="url(#cycle-arrow)" />
+            <path d="M 62 118 A 118 118 0 0 1 118 62" fill="none" stroke="#9a671d" strokeWidth="2.5" markerEnd="url(#cycle-arrow)" />
+            <g>
+              <circle cx="170" cy="52" r="41" fill="#ffffff" stroke="#e0a458" strokeWidth="2" />
+              <text x="170" y="60" textAnchor="middle" className="cycle-word">整える</text>
+            </g>
+            <g>
+              <circle cx="288" cy="170" r="41" fill="#ffffff" stroke="#e0a458" strokeWidth="2" />
+              <text x="288" y="178" textAnchor="middle" className="cycle-word">気づく</text>
+            </g>
+            <g>
+              <circle cx="170" cy="288" r="41" fill="#ffffff" stroke="#e0a458" strokeWidth="2" />
+              <text x="170" y="296" textAnchor="middle" className="cycle-word">選ぶ</text>
+            </g>
+            <g>
+              <circle cx="52" cy="170" r="41" fill="#ffffff" stroke="#e0a458" strokeWidth="2" />
+              <text x="52" y="176" textAnchor="middle" className="cycle-word cycle-word-long">積み重ねる</text>
+            </g>
+            <text x="170" y="163" textAnchor="middle" className="cycle-center">父親OSを、</text>
+            <text x="170" y="190" textAnchor="middle" className="cycle-center">見る循環</text>
+          </svg>
+          <figcaption>整える → 気づく → 選ぶ → 積み重ねる。そして、また整えるへ。</figcaption>
+        </figure>
         <ol>{viewpoints.map(([number, title, body]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{body}</p></li>)}</ol>
       </section>
 
